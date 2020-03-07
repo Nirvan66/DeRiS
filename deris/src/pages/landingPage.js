@@ -1,7 +1,15 @@
 import React from 'react';
-import {TwoButtonTextSubmission} from './modules/textInputs'
+import {TwoButtonTextSubmission} from './../modules/textInputs'
 
-// Class for the entire landing page. Shows a header and receives input for the address
+/**
+ * The module for the landing page. Uses a two button submission
+ * 
+ * @param {object}  props       Properties passed in from the App. Should have a 
+ *                              onSubmit function that takes payload {ethereumAddress: string, type: string}
+ *                              type is either 'rider' or 'driver'
+ * 
+ * @returns {React.Component}   The react component for the entire page
+ */
 class LandingPage extends React.Component {
     constructor (props) {
         super(props);
