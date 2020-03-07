@@ -19,24 +19,15 @@ class App extends Component {
     this.state = { ethereumAddress : '' }
 
     //  bindings
-    this.setEthereumAddress = this.setEthereumAddress.bind(this);
     this.onLandingPageSubmit = this.onLandingPageSubmit.bind(this);
-    this.onRiderPageSubmit = this.onRiderPageSubmit.bind(this);
-    this.onDriverPageSubmit = this.onDriverPageSubmit.bind(this);
-  }
-
-  /////////////////////////////////////////////////////////////////////////
-  //              General Data Manipulation
-  /////////////////////////////////////////////////////////////////////////
-  setEthereumAddress (address) {
-    this.setState({ethereumAddress: address})
   }
 
   /////////////////////////////////////////////////////////////////////////
   //              Submissions
   /////////////////////////////////////////////////////////////////////////
-  onLandingPageSubmit (event) {
-    this.setState({ethereumAddress: event.target.value})
+  onLandingPageSubmit (payload) {
+    this.setState({ethereumAddress: payload.ethereumAddress})
+    alert('Changed ethereum address to ' + this.state.ethereumAddress + '\n and going to page ' + payload.type)
     // TODO: we need to go to either the driver or rider page
   }
 
@@ -44,8 +35,6 @@ class App extends Component {
     return (
       <LandingPage 
         onSubmit={this.onLandingPageSubmit}
-        ethereumAddress={this.state.ethereumAddress}
-        setEthereumAddress={this.setEthereumAddress}
       ></LandingPage>
     );
   }
