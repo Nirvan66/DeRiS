@@ -17,25 +17,16 @@ function EthereumAddressInput (props){
 class LandingPage extends React.Component {
     constructor (props) {
         super(props);
-        this.state = {
-            ethereumAddress: '',
-        }
-
         this.onChange = this.onChange.bind(this);
-        this.onSubmit = this.onSubmit.bind(this);
-    }
-    // eventually make this inherited from the app in order to move to the new page
-    onSubmit(event) {
-        alert('changing to ' + this.state.ethereumAddress)
     }
     // keep tracking the user input to use for submission
     onChange(event) {
-        this.setState({ethereumAddress: event.target.value})
+        this.props.setEthereumAddress(event.target.value)
     }
-    // render the input feild
+    // render the input field
     renderAddressInput () {
         return <EthereumAddressInput 
-                    onSubmit={this.onSubmit}
+                    onSubmit={this.props.onSubmit}
                     onChange={this.onChange}
                 ></EthereumAddressInput>
     }
@@ -44,7 +35,7 @@ class LandingPage extends React.Component {
             <div class='LandingPage'>
                 <div class='DerisHeader'>DERIS</div>
                 <div class='AddressInputContainer'>{this.renderAddressInput()}</div>
-                <div>Your ethereumAddress is: {this.state.ethereumAddress}</div>
+                <div>Your ethereumAddress is: {this.props.ethereumAddress}</div>
             </div>
             
         )

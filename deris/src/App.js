@@ -16,12 +16,37 @@ class App extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { account: '' }
+    this.state = { ethereumAddress : '' }
+
+    //  bindings
+    this.setEthereumAddress = this.setEthereumAddress.bind(this);
+    this.onLandingPageSubmit = this.onLandingPageSubmit.bind(this);
+    this.onRiderPageSubmit = this.onRiderPageSubmit.bind(this);
+    this.onDriverPageSubmit = this.onDriverPageSubmit.bind(this);
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  //              General Data Manipulation
+  /////////////////////////////////////////////////////////////////////////
+  setEthereumAddress (address) {
+    this.setState({ethereumAddress: address})
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  //              Submissions
+  /////////////////////////////////////////////////////////////////////////
+  onLandingPageSubmit (event) {
+    this.setState({ethereumAddress: event.target.value})
+    // TODO: we need to go to either the driver or rider page
   }
 
   render() {
     return (
-      <LandingPage></LandingPage>
+      <LandingPage 
+        onSubmit={this.onLandingPageSubmit}
+        ethereumAddress={this.state.ethereumAddress}
+        setEthereumAddress={this.setEthereumAddress}
+      ></LandingPage>
     );
   }
 }
