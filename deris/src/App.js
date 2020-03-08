@@ -76,6 +76,9 @@ class App extends Component {
           onSubmit={this.onRiderPageSubmit}
           show={this.state.isRiderPage}
         ></RiderPage>
+        <DriverPage
+          show={this.state.isDriverPage}
+        ></DriverPage>
       </div>
       
     );
