@@ -19,32 +19,65 @@ class App extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { ethereumAddress : '' }
+    this.state = { 
+      ethereumAddress : '',
+      startLocation: '',
+      endLocation: '',
+      role: '',
+      isLandingPage: true,
+      isRiderPage: false,
+      isDriverPage: false,
+      isRideProgressPage: false
+    }
 
     //  bindings
     this.onLandingPageSubmit = this.onLandingPageSubmit.bind(this);
+    this.onRiderPageSubmit = this.onRiderPageSubmit.bind(this);
   }
 
   /////////////////////////////////////////////////////////////////////////
   //              Submissions
   /////////////////////////////////////////////////////////////////////////
-  onLandingPageSubmit (payload) {
-    this.setState({ethereumAddress: payload.ethereumAddress})
-    alert('Changed ethereum address to ' + this.state.ethereumAddress + '\n and going to page ' + payload.type)
-    // TODO: we need to go to either the driver or rider page
-    if (payload.type == 'rider'){
-      // got to the rider page
-    }
-    else {
-      // go to the driver page
-    }
+  onLandingPageSubmit(payload) {
+    const isRiderPage = payload.role == 'rider';
+
+    this.setState({
+      ethereumAddress: payload.ethereumAddress,
+      isLandingPage: false,
+      isRiderPage: isRiderPage,
+      isDriverPage: !isRiderPage
+    });
   }
 
+  onRiderPageSubmit(payload){
+    const isContinuing = payload.requestType == 'request';
+    alert('the next page comes from the button '+ payload.requestType)
+
+    this.setState({
+      startLocation: payload.startLocation,
+      endLocation: payload.endLocation,
+      isRiderPage: false,
+      isRideProgressPage: isContinuing,
+      isLandingPage: !isContinuing
+    })
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  //              App render
+  /////////////////////////////////////////////////////////////////////////
   render() {
     return (
-      <LandingPage 
-        onSubmit={this.onLandingPageSubmit}
-      ></LandingPage>
+      <div>
+        <LandingPage 
+          onSubmit={this.onLandingPageSubmit}
+          show={this.state.isLandingPage}
+        ></LandingPage>
+        <RiderPage
+          onSubmit={this.onRiderPageSubmit}
+          show={this.state.isRiderPage}
+        ></RiderPage>
+      </div>
+      
     );
   }
 }
