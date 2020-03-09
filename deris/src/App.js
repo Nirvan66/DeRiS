@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
 import Web3 from 'web3'
 import './App.css'
-import LandingPage from './pages/landingPage.js'
-import RiderPage from './pages/riderPage.js'
-import DriverPage from './pages/driverPage.js'
-import RideProgressPage from './pages/rideProgressPage.js'
+import LandingPage from './pages/landingPage.jsx'
+import RiderPage from './pages/riderPage.jsx'
+import DriverPage from './pages/driverPage.jsx'
+import RideProgressPage from './pages/rideProgressPage.jsx'
 
 class App extends Component {
   componentWillMount() {

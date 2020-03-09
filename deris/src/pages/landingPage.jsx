@@ -1,5 +1,5 @@
 import React from 'react';
-import {TwoButtonTextSubmission} from './../modules/textInputs'
+import {TwoButtonTextSubmission} from '../modules/textInputs'
 
 /**
  * The module for the landing page. Uses a two button submission

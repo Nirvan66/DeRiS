@@ -1,5 +1,5 @@
 import React from 'react';
-import { ButtonWithLabels } from './../modules/buttonInputs.js'
+import { ButtonWithLabels } from './buttonInputs.jsx'
 
 /**
  * Build a list of buttonWithLabels elements

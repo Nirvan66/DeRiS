@@ -1,5 +1,5 @@
 import React from 'react';
-import { TwoButtonTwoTextSubmission } from './../modules/textInputs.js'
+import { TwoButtonTwoTextSubmission } from '../modules/textInputs.jsx'
 /**
  * The module for the rider page
  * 

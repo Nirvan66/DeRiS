@@ -1,5 +1,26 @@
 import React from 'react';
 
+/**
+ * Function for displaying a single text box with no submit function just onChange function
+ * 
+ * @param {object} props    Properties from a higher power.
+ *                          Should contain the following:
+ *                          {
+ *                              onChange:   callable
+ *                              label:      string
+ *                          }
+ * 
+ * @returns {React DOM element}
+ */
+function SingleTextBox (props) {
+    return (
+        <form>
+            <label>{props.label}</label>
+            <input type="text" onChange={props.onChange}/>
+        </form>
+    )
+}
+
 /** 
  * Function for displaying a text box and two buttons. Stateless
  * 
@@ -57,5 +78,6 @@ function TwoButtonTwoTextSubmission (props){
 
 export  {
     TwoButtonTextSubmission,
-    TwoButtonTwoTextSubmission
+    TwoButtonTwoTextSubmission,
+    SingleTextBox
 }

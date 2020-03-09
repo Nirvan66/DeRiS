@@ -1,5 +1,6 @@
 import React from 'react';
-import { ButtonWithLabelsList } from './../modules/lists.js'
+import { ButtonWithLabelsList } from '../modules/lists.jsx'
+import { SingleTextBox } from '../modules/textInputs.jsx'
 
 /**
  * The module for the driver page
@@ -26,8 +27,17 @@ class DriverPage extends React.Component {
         }
 
         this.getRides = this.getRides.bind(this);
+        this.onCenterLocChange =  this.onCenterLocChange.bind(this);
+        this.onRadiusChange = this.onRadiusChange.bind(this);
     }
-    
+    // update the centering location 
+    onCenterLocChange(event) {
+        this.setState({center: event.target.value});
+    }
+    // update the radius
+    onRadiusChange(event) {
+        this.setState({radius: event.target.value});
+    }
     // Getting rides from blockchain. Mock for now
     getRides() {
         return {
@@ -67,9 +77,19 @@ class DriverPage extends React.Component {
         }
         const elements = this.getRides();
         return (
-            <ButtonWithLabelsList
-                elements={elements.elements}
-            ></ButtonWithLabelsList>
+            <div class="driverPageContainer">
+                <SingleTextBox
+                    label='Location'
+                    onChange={this.onCenterLocChange}
+                ></SingleTextBox>
+                <SingleTextBox
+                    label='Radius'
+                    onChange={this.onRadiusChange}
+                ></SingleTextBox>
+                <ButtonWithLabelsList
+                    elements={elements.elements}
+                ></ButtonWithLabelsList>
+            </div>
         )
     }
 }
