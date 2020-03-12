@@ -1,7 +1,7 @@
 var fs = require('fs');
 
 Web3 = require('web3');
-web3 = new Web3("http://127.0.0.1:8545");
+web3 = new Web3("http://127.0.0.1:7545");
 // web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'))
 
 // var account;
@@ -17,7 +17,7 @@ deployedContract.deploy({
   data: bytecode,
   arguments: [listOfCandidates.map(name => web3.utils.asciiToHex(name))]
 }).send({
-  from: '0x482Ca4D4A1452968D25D3F5Ce618099144e03f36',
+  from: '0xf00660Eec668cb99A8967fFE0c25729B5502D250',
   gas: 1500000,
   gasPrice: web3.utils.toWei('0.00003', 'ether')
 }).then((newContractInstance) => {
