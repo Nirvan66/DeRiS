@@ -6,11 +6,14 @@ import React from 'react';
  *                          {
  *                              labels:     array of strings
  *                              onClick:    callable
- *                              buttonLabe: string
+ *                              buttonLabel: string
  *                          }         
+ *                          Data for the button selected kept in target.value
+ *                          labels seperated by the separator /?/
  * @returns {React DOM element}
  */
 function ButtonWithLabels(props) {
+    const sep = '/?/';
     return (
         <table>
         <tbody class="buttonWithLabels">
@@ -19,7 +22,12 @@ function ButtonWithLabels(props) {
                     <td key={el}>{el}</td>
                 )}
                 <td>
-                    <button class="rightEndButton" onClick={props.onClick}>{props.buttonLabel}</button>
+                    <button 
+                        class="rightEndButton" 
+                        onClick={props.onClick} 
+                        key={'button__'+props.buttonLabel}
+                        value={props.labels.join(sep)}
+                        >{props.buttonLabel}</button>
                 </td>
             </tr>
         </tbody>
@@ -27,6 +35,22 @@ function ButtonWithLabels(props) {
     )
 }
 
+/**
+ * Function for a single button element
+ * 
+ * @param {object} props    properties from the caller. Should have the following attributes
+ *                          {
+ *                              label:      string
+ *                              onClick:    callable
+ *                          }
+ */
+function SingleButton(props) {
+    return (
+        <button onClick={props.onClick}>{props.label}</button>
+    )
+}
+
 export {
-    ButtonWithLabels
+    ButtonWithLabels,
+    SingleButton
 }

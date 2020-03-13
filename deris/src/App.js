@@ -21,9 +21,13 @@ class App extends Component {
     super(props)
     this.state = { 
       ethereumAddress : '',
-      startLocation: '',
-      endLocation: '',
       role: '',
+      riderStartLocation: '',
+      riderEndLocation: '',
+      driverStartLocation: '',
+      driverJobRadius: '',
+      driverJobInfo: '',
+      // state info for page loading
       isLandingPage: true,
       isRiderPage: false,
       isDriverPage: false,
@@ -33,6 +37,7 @@ class App extends Component {
     //  bindings
     this.onLandingPageSubmit = this.onLandingPageSubmit.bind(this);
     this.onRiderPageSubmit = this.onRiderPageSubmit.bind(this);
+    this.onDriverPageSubmit = this.onDriverPageSubmit.bind(this);
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -51,15 +56,28 @@ class App extends Component {
 
   onRiderPageSubmit(payload){
     const isContinuing = payload.requestType == 'request';
-    alert('the next page comes from the button '+ payload.requestType)
+    console.log('Rider continuing ride', isContinuing);
 
     this.setState({
-      startLocation: payload.startLocation,
-      endLocation: payload.endLocation,
+      riderStartLocation: payload.startLocation,
+      riderEndLocation: payload.endLocation,
       isRiderPage: false,
       isRideProgressPage: isContinuing,
       isLandingPage: !isContinuing
-    })
+    });
+  }
+
+  onDriverPageSubmit(payload) {
+    const isCancel = payload.isCancel;
+    console.log('Driver canceling request: ' + isCancel);
+    this.setState({
+      isDriverPage: false,
+      isRideProgressPage: !isCancel,
+      isLandingPage: isCancel,
+      driverStartLocation: payload.center,
+      driverJobRadius: payload.radius,
+      driverJobInfo: payload.jobInfo
+    });
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -77,8 +95,12 @@ class App extends Component {
           show={this.state.isRiderPage}
         ></RiderPage>
         <DriverPage
+          onSubmit={this.onDriverPageSubmit}
           show={this.state.isDriverPage}
         ></DriverPage>
+        <RideProgressPage
+          show={this.state.isRideProgressPage}
+        ></RideProgressPage>
       </div>
       
     );

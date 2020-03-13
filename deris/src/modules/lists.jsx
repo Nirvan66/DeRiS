@@ -22,7 +22,7 @@ function ButtonWithLabelsList(props) {
                     <ButtonWithLabels
                         buttonLabel={el.buttonLabel}
                         labels={el.labels}
-                        onClick={() => {alert('oh ive been touched')}}
+                        onClick={el.onClick}
                     ></ButtonWithLabels>
                 )}
         </div>
