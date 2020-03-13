@@ -1,4 +1,5 @@
 import React from 'react';
+import './styles/riderPage.css'
 import { TwoButtonTwoTextSubmission } from '../modules/textInputs.jsx'
 /**
  * The module for the rider page
@@ -60,6 +61,7 @@ class RiderPage extends React.Component {
         const secondaryButton = {submitFunction: this.onCancelSubmit, label: 'Cancel'};
 
         return (
+            <div class="RiderPage">
             <TwoButtonTwoTextSubmission
                 inputFieldOne={inputFieldOne}
                 inputFieldTwo={inputFieldTwo}
@@ -67,6 +69,7 @@ class RiderPage extends React.Component {
                 secondaryButton={secondaryButton}
                 onChange={this.onChange}
             ></TwoButtonTwoTextSubmission>
+            </div>
         )
     }
 }

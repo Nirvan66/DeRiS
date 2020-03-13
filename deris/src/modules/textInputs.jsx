@@ -68,16 +68,22 @@ function TwoButtonTextSubmission (props){
  */
 function TwoButtonTwoTextSubmission (props){
     return (
-        <form onSubmit={props.primaryButton.submitFunction}>
-        <label>{props.inputFieldOne.label}</label>
-        <input type="text" name={props.inputFieldOne.label} onChange={props.onChange}/>
-
-        <label>{props.inputFieldTwo.label}</label>
-        <input type="text" name={props.inputFieldTwo.label} onChange={props.onChange}/>
-
-        <button type="submit">{props.primaryButton.label}</button>
-        <button onClick={props.secondaryButton.submitFunction}>{props.secondaryButton.label}</button>
-        </form>
+        <div class="TwoButtonTwoTextSubmissionContainer">
+            <Form onSubmit={props.primaryButton.submitFunction}> 
+                <Form.Group>
+                    <Form.Label>{props.inputFieldOne.label}</Form.Label>
+                    <Form.Control name={props.inputFieldOne.label} onChange={props.onChange}/>
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label>{props.inputFieldTwo.label}</Form.Label>
+                    <Form.Control name={props.inputFieldTwo.label} onChange={props.onChange}/>
+                </Form.Group>
+                <div class="TwoButtonTwoTextSubmissionButtonContainer">
+                    <Button class="PrimaryButton" type="submit" size="lg">{props.primaryButton.label}</Button>
+                    <Button class="SecondaryButton" size="lg" onClick={props.secondaryButton.submitFunction} >{props.secondaryButton.label}</Button>
+                </div>
+            </Form>
+        </div>
     );
 }
 
