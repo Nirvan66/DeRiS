@@ -1,4 +1,5 @@
 import React from 'react';
+import { Form, Button } from 'react-bootstrap';
 
 /**
  * Function for displaying a single text box with no submit function just onChange function
@@ -30,19 +31,23 @@ function SingleTextBox (props) {
  *                              primary:    {submitFunction: callable, label: string},
  *                              secondary:  {submitFunction: callable, label: string}
  *                              onChange:   callable
+ *                              inputLabel: string
  *                          }
  * 
  * @return {React DOM element}
 */
 function TwoButtonTextSubmission (props){
     return (
-        <form onSubmit={props.primary.submitFunction}>
-        <label>
-            <input type="text" onChange={props.onChange}/>
-        </label>
-        <button type="submit">{props.primary.label}</button>
-        <button onClick={props.secondary.submitFunction}>{props.secondary.label}</button>
-        </form>
+        <Form onSubmit={props.primary.submitFunction}> 
+            <Form.Group controlId="formBasicPassword">
+                <Form.Label>{props.inputLabel}</Form.Label>
+                <Form.Control onChange={props.onChange}/>
+            </Form.Group>
+            <div class="TwoButtonTextSubmissionButtonContainer">
+                <Button class="PrimaryButton" type="submit" size="lg" block>{props.primary.label}</Button>
+                <Button class="SecondaryButton" size="lg" onClick={props.secondary.submitFunction} block>{props.secondary.label}</Button>
+            </div>
+        </Form>
     );
 }
 

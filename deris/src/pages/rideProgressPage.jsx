@@ -15,7 +15,7 @@ class RideProgressPage extends React.Component {
 
     render() {
         if (!this.props.show){
-            return (<div>poopoo</div>)
+            return (<div class="empty"></div>)
         }
         return(
             <div>Howdy</div>

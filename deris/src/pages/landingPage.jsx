@@ -1,4 +1,6 @@
 import React from 'react';
+import './styles/landingPage.css'
+import { Jumbotron } from 'react-bootstrap';
 import {TwoButtonTextSubmission} from '../modules/textInputs'
 
 /**
@@ -46,6 +48,7 @@ class LandingPage extends React.Component {
             submitFunction: this.onDriverSubmit, label: 'Driver'
         }
         return <TwoButtonTextSubmission 
+                    inputLabel="Ethereum Address"
                     primary={primary}
                     secondary={secondary}
                     onChange={this.onChange}
@@ -57,7 +60,9 @@ class LandingPage extends React.Component {
         }
         return (
             <div class='LandingPage'>
-                <div class='DerisHeader'>DERIS</div>
+                <Jumbotron fluid>
+                    <h1 class='DerisHeader'>DERIS</h1>
+                </Jumbotron>
                 <div class='AddressInputContainer'>{this.renderAddressInput()}</div>
             </div>
             
