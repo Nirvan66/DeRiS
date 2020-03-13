@@ -15,10 +15,14 @@ import { Form, Button } from 'react-bootstrap';
  */
 function SingleTextBox (props) {
     return (
-        <form>
-            <label>{props.label}</label>
-            <input type="text" onChange={props.onChange}/>
-        </form>
+        <div class="SingleTextBoxContainer">
+            <Form> 
+                <Form.Group >
+                    <Form.Label>{props.label}</Form.Label>
+                    <Form.Control onChange={props.onChange}/>
+                </Form.Group>
+            </Form>
+        </div>
     )
 }
 

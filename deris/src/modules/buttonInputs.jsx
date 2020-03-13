@@ -1,4 +1,5 @@
 import React from 'react';
+import { Table, Button } from 'react-bootstrap';
 
 /**
  * Generate a single element with labels of information 
@@ -15,23 +16,24 @@ import React from 'react';
 function ButtonWithLabels(props) {
     const sep = '/?/';
     return (
-        <table>
-        <tbody class="buttonWithLabels">
+        <Table bordered>
+        <tbody class="ButtonWithLabels">
             <tr>
                 { props.labels.map( el =>
                     <td key={el}>{el}</td>
                 )}
-                <td>
-                    <button 
+                <td class="ButtonWithLabelsButtonContainer">
+                    <Button 
                         class="rightEndButton" 
                         onClick={props.onClick} 
                         key={'button__'+props.buttonLabel}
                         value={props.labels.join(sep)}
-                        >{props.buttonLabel}</button>
+                        >{props.buttonLabel}
+                    </Button>
                 </td>
             </tr>
         </tbody>
-        </table>
+        </Table>
     )
 }
 

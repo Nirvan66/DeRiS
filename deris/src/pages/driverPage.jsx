@@ -1,4 +1,5 @@
 import React from 'react';
+import './styles/driverPage.css'
 import { ButtonWithLabelsList } from '../modules/lists.jsx'
 import { SingleTextBox } from '../modules/textInputs.jsx'
 import { SingleButton } from '../modules/buttonInputs.jsx'
