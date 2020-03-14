@@ -48,7 +48,11 @@ function ButtonWithLabels(props) {
  */
 function SingleButton(props) {
     return (
-        <button onClick={props.onClick}>{props.label}</button>
+        <div class='SingleButtonContainer'>
+            <Button size="lg"
+                onClick={props.onClick}
+            >{props.label}</Button>
+        </div>
     )
 }
 

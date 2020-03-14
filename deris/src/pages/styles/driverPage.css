@@ -46,3 +46,13 @@
     background-color: goldenrod;
     border-color: goldenrod;
 }
+
+.driverPageContainer .SingleButtonContainer {
+    text-align: center;
+}
+
+.driverPageContainer .SingleButtonContainer button{
+    background-color: black;
+    border-color: black;
+    color: white;
+}
