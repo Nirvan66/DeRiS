@@ -23,7 +23,8 @@ class RiderPage extends React.Component {
         this.state = {
             startLocation: '',
             endLocation: '',
-
+            startAddress: '',
+            endAddress: ''
         }
 
         this.onChange = this.onChange.bind(this);
@@ -55,10 +56,16 @@ class RiderPage extends React.Component {
 
     onMapClick(payload) {
         if (payload.isStartLoc) {
-            this.setState({startLocation: payload.location})
+            this.setState({
+                startLocation: payload.location,
+                startAddress: payload.address
+            })
         }
         else {
-            this.setState({endLocation: payload.location})
+            this.setState({
+                endLocation: payload.location,
+                endAddress: payload.address
+            })
         }
         console.log('location was start: ' + payload.isStartLoc);
         console.log('location :' + payload.location)
@@ -68,8 +75,8 @@ class RiderPage extends React.Component {
         if (!this.props.show){
             return (<div class="empty"></div>)
         }
-        const inputFieldOne = {label: 'Pick-up Location', value: this.state.startLocation};
-        const inputFieldTwo = {label: 'Drop-off Location', value: this.state.endLocation};
+        const inputFieldOne = {label: 'Pick-up Location', value: this.state.startAddress};
+        const inputFieldTwo = {label: 'Drop-off Location', value: this.state.endAddress};
         const primaryButton = {submitFunction: this.onRequestSubmit, label: 'Request'};
         const secondaryButton = {submitFunction: this.onCancelSubmit, label: 'Cancel'};
 
