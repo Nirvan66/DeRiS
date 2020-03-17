@@ -61,8 +61,8 @@ function TwoButtonTextSubmission (props){
  * @param {object} props    The properties from a higher power.
  *                          Should be of the form
  *                          {
- *                              inputFieldOne:      {label: string}
- *                              inputFieldTwo:      {label: string}
+ *                              inputFieldOne:      {label: string, value: any}
+ *                              inputFieldTwo:      {label: string, value: any}
  *                              primaryButton:      {submitFunction: callable, label: string}
  *                              secondaryButton:    {submitFunction: callable, label: string}
  *                              onChange:           callable
@@ -76,11 +76,11 @@ function TwoButtonTwoTextSubmission (props){
             <Form onSubmit={props.primaryButton.submitFunction}> 
                 <Form.Group>
                     <Form.Label>{props.inputFieldOne.label}</Form.Label>
-                    <Form.Control name={props.inputFieldOne.label} onChange={props.onChange}/>
+                    <Form.Control name={props.inputFieldOne.label} onChange={props.onChange} value={props.inputFieldOne.value}/>
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>{props.inputFieldTwo.label}</Form.Label>
-                    <Form.Control name={props.inputFieldTwo.label} onChange={props.onChange}/>
+                    <Form.Control name={props.inputFieldTwo.label} onChange={props.onChange} value={props.inputFieldTwo.value}/>
                 </Form.Group>
                 <div class="TwoButtonTwoTextSubmissionButtonContainer">
                     <Button class="PrimaryButton" type="submit" size="lg">{props.primaryButton.label}</Button>

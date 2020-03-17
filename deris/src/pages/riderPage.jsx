@@ -1,6 +1,7 @@
 import React from 'react';
 import './styles/riderPage.css'
 import { TwoButtonTwoTextSubmission } from '../modules/textInputs.jsx'
+import  MapContainer  from '../modules/googleMap.jsx'
 /**
  * The module for the rider page
  * 
@@ -28,6 +29,7 @@ class RiderPage extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onRequestSubmit = this.onRequestSubmit.bind(this);
         this.onCancelSubmit = this.onCancelSubmit.bind(this);
+        this.onMapClick = this.onMapClick.bind(this);
     }
     // keep tracking the user input to use for submission. need to discern by name
     onChange(event) {
@@ -51,12 +53,23 @@ class RiderPage extends React.Component {
         });
     }
 
+    onMapClick(payload) {
+        if (payload.isStartLoc) {
+            this.setState({startLocation: payload.location})
+        }
+        else {
+            this.setState({endLocation: payload.location})
+        }
+        console.log('location was start: ' + payload.isStartLoc);
+        console.log('location :' + payload.location)
+    }
+
     render() {
         if (!this.props.show){
             return (<div class="empty"></div>)
         }
-        const inputFieldOne = {label: 'Pick-up Location'};
-        const inputFieldTwo = {label: 'Drop-off Location'};
+        const inputFieldOne = {label: 'Pick-up Location', value: this.state.startLocation};
+        const inputFieldTwo = {label: 'Drop-off Location', value: this.state.endLocation};
         const primaryButton = {submitFunction: this.onRequestSubmit, label: 'Request'};
         const secondaryButton = {submitFunction: this.onCancelSubmit, label: 'Cancel'};
 
@@ -69,6 +82,9 @@ class RiderPage extends React.Component {
                 secondaryButton={secondaryButton}
                 onChange={this.onChange}
             ></TwoButtonTwoTextSubmission>
+            <MapContainer
+                onClick={this.onMapClick}
+            ></MapContainer>
             </div>
         )
     }
