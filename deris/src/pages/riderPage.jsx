@@ -1,7 +1,8 @@
 import React from 'react';
 import './styles/riderPage.css'
 import { TwoButtonTwoTextSubmission } from '../modules/textInputs.jsx'
-import  MapContainer  from '../modules/googleMap.jsx'
+import { withScriptjs } from "react-google-maps";
+import  Map  from '../modules/googleMap.jsx'
 /**
  * The module for the rider page
  * 
@@ -17,6 +18,9 @@ import  MapContainer  from '../modules/googleMap.jsx'
  * 
  * @returns {React.Component}   The react component for the entire page
  */
+
+const API_KEY = 'AIzaSyChykMQlbWKcQy-qixkVnXCrGVoy-vdlM4'
+const MapLoader = withScriptjs(Map);
 class RiderPage extends React.Component {
     constructor (props) {
         super(props);
@@ -89,9 +93,11 @@ class RiderPage extends React.Component {
                 secondaryButton={secondaryButton}
                 onChange={this.onChange}
             ></TwoButtonTwoTextSubmission>
-            <MapContainer
+            <MapLoader
+                googleMapURL={"https://maps.googleapis.com/maps/api/js?key=" + API_KEY }
+                loadingElement={<div style={{ height: `100%`, width: '100%' }} />}
                 onClick={this.onMapClick}
-            ></MapContainer>
+            />
             </div>
         )
     }

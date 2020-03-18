@@ -1,7 +1,22 @@
 /* global google */
-import React from "react";
-import { Map, Marker, GoogleApiWrapper } from "google-maps-react";
+import React, { Component } from "react";
+import {
+  withGoogleMap,
+  withScriptjs,
+  GoogleMap,
+  DirectionsRenderer,
+  Marker
+} from "react-google-maps";
 
+import {
+  getReverseGeocodingData
+} from '../js_modules/googleMapUtils.js'
+
+/**
+ * Keep track of clicked locations and put a maker down 
+ * 
+ * @param {*} props 
+ */
 const MarkersList = props => {
   const { locations, ...markerProps } = props;
   return (
@@ -19,107 +34,128 @@ const MarkersList = props => {
   );
 };
 
-class MapContainer extends React.Component {
+/**
+ * 
+ * @class Map   creates a map component. props should include .onClick that takes {location, isStartLoc, addresss}
+ */
+class Map extends Component {
   constructor(props) {
     super(props);
     this.state = {
-        startLocation: null,
-        endLocation: null,
-        locations: [],
-        centerLocation: null
+      directions: null, 
+      startCoords: null,
+      endCoords: null,
+      startAddr: null,
+      endAddr: null, 
+      centerCoords: null,
+      locations: []
     };
+
     this.handleMapClick = this.handleMapClick.bind(this);
     this.getGeoLocation = this.getGeoLocation.bind(this);
-    this.getReverseGeocodingData = this.getReverseGeocodingData.bind(this);
   }
 
-  getReverseGeocodingData(lat, lng) {
-      return new Promise((resolve, reject) => {
-        var latlng = new google.maps.LatLng(lat, lng);
-        // This is making the Geocode request
-        var geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ 'latLng': latlng }, function (results, status) {
-            if (status !== google.maps.GeocoderStatus.OK) {
-                alert(status);
-                reject();
-            }
-            // This is checking to see if the Geoeode Status is OK before proceeding
-            if (status == google.maps.GeocoderStatus.OK) {
-                const address = (results[0].formatted_address);
-                console.log(address);
-                resolve(address);
-            }
-        });
-      });
+async handleMapClick (ref, map, ev) {
+  const location = ref.latLng;
+  console.log('starting coordinates: ')
+  console.log(this.state.startCoords)
+  const isStartLoc = this.state.startCoords === null;
+  const addr = {}
+
+  // pass the location and address up to the caller
+  const propsOnClick = (location, isStartLoc, addr) => {
+      this.props.onClick({location: location, isStartLoc: isStartLoc, address: addr});
+  } 
+  // if this is the first click, we want the starting position
+  if (isStartLoc) {
+      this.setState(prevState => ({
+          startCoords: location,
+          locations: [...prevState.locations, location]
+      }));
+      const addr = await getReverseGeocodingData(location.lat(), location.lng());
+      propsOnClick(location, isStartLoc, addr);
+  }
+  // if its the second one, we want the destination address
+  else if (this.state.endCoords === null) {
+      this.setState(prevState => ({
+          endCoords: location,
+          locations: [...prevState.locations, location]
+      }));
+      const addr = await getReverseGeocodingData(location.lat(), location.lng());
+      
+      propsOnClick(location, isStartLoc, addr);
+  }
 }
 
-
-  async handleMapClick (ref, map, ev) {
-    const location = ev.latLng;
-    const isStartLoc = this.state.startLocation === null;
-    const panAndPassUp = (location, isStartLoc, addr) => {
-        map.panTo(location);
-        this.props.onClick({location: location, isStartLoc: isStartLoc, address: addr});
-    } 
-
-    if (isStartLoc) {
-        this.setState(prevState => ({
-            startLocation: location,
-            locations: [...prevState.locations, location]
-        }));
-        const addr = await this.getReverseGeocodingData(location.lat(), location.lng());
-        panAndPassUp(location, isStartLoc, addr);
-    }
-    else if (this.state.endLocation === null) {
-        this.setState(prevState => ({
-            endLocation: location,
-            locations: [...prevState.locations, location]
-        }));
-        const addr = await this.getReverseGeocodingData(location.lat(), location.lng());
-        panAndPassUp(location, isStartLoc, addr);
-    }
-    
-  };
-
-  getGeoLocation = () => {
-    if (navigator && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          const coords = pos.coords;
-          console.log('stetting state to (lat, long): ' + coords.latitude + ' ' + coords.longitude);
-          this.setState({
-            centerLocation: {
-              lat: coords.latitude,
-              lng: coords.longitude
-            }
-          });
-        });
-    }
+ getGeoLocation() {
+  if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+          position => {
+              this.setState({
+                  centerCoords: {
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude
+                  }
+              })
+          }
+      )
+  } else {
+      console.log('error')
   }
+}
 
   componentDidMount() {
-      this.getGeoLocation();
+    const directionsService = new google.maps.DirectionsService();
+
+    if (this.state.startCoords && this.setState.endCoords){
+      const origin = this.state.startCoords;
+      const destination = this.state.endCoords;
+
+      directionsService.route(
+        {
+          origin: origin,
+          destination: destination,
+          travelMode: google.maps.TravelMode.DRIVING
+        },
+        (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK) {
+            this.setState({
+              directions: result
+            });
+          } else {
+            console.error(`error fetching directions ${result}`);
+          }
+        }
+      );
+    }
+
+    this.getGeoLocation();
   }
 
   render() {
-        const startingCenter = (this.state.centerLocation === null || this.state.centerLocation === {}) ? this.props.center : this.state.centerLocation;
-        return (
-        <div className="map-container">
-            <Map
-            google={this.props.google}
-            className={"map"}
-            zoom={this.props.zoom}
-            defaultCenter={startingCenter}
-            center={startingCenter}
-            onClick={this.handleMapClick}
-            >
-            <MarkersList locations={this.state.locations}/>
-            </Map>
-        </div>
-        );
+    const GoogleMapExample = withGoogleMap(props => (
+      <GoogleMap
+        defaultCenter={{ lat: 40.756795, lng: -73.954298 }}
+        center={this.state.centerCoords}
+        defaultZoom={13}
+        onClick={this.handleMapClick}
+      >
+        <DirectionsRenderer
+          directions={this.state.directions}
+        />
+        <MarkersList locations={this.state.locations}/>
+      </GoogleMap>
+    ));
+
+    return (
+      <div>
+        <GoogleMapExample
+          containerElement={<div style={{ height: `500px`, width: "100%" }} />}
+          mapElement={<div style={{ height: `100%` }} />}
+        />
+      </div>
+    );
   }
 }
 
-export default GoogleApiWrapper({
-  apiKey: "AIzaSyChykMQlbWKcQy-qixkVnXCrGVoy-vdlM4",
-  libraries: []
-})(MapContainer);
+export default Map;
