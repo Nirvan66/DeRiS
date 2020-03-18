@@ -20,6 +20,21 @@ return new Promise((resolve, reject) => {
 });
 }
 
+/**
+ * 
+ * @param {object} route route object returned from google maps. Should be a single route instead of an array of routes
+ */
+function totalRouteDistance (route) {
+    let total = 0;
+    for (let leg of route.legs){
+        console.log('leg')
+        console.log(leg)
+        total += leg.distance.value;
+    }
+    return total;
+}
+
 export  {
-    getReverseGeocodingData
+    getReverseGeocodingData,
+    totalRouteDistance
 }

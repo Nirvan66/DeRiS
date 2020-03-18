@@ -53,6 +53,7 @@ class Map extends Component {
 
     this.handleMapClick = this.handleMapClick.bind(this);
     this.getGeoLocation = this.getGeoLocation.bind(this);
+    this.addRoute = this.addRoute.bind(this);
   }
 
 async handleMapClick (ref, map, ev) {
@@ -84,6 +85,7 @@ async handleMapClick (ref, map, ev) {
       const addr = await getReverseGeocodingData(location.lat(), location.lng());
       
       propsOnClick(location, isStartLoc, addr);
+      this.addRoute();
   }
 }
 
@@ -104,31 +106,32 @@ async handleMapClick (ref, map, ev) {
   }
 }
 
-  componentDidMount() {
-    const directionsService = new google.maps.DirectionsService();
+addRoute() {
+  const directionsService = new google.maps.DirectionsService();
+  console.log('IN THE IF BOTH COORDS')
+  const origin = this.state.startCoords;
+  const destination = this.state.endCoords;
 
-    if (this.state.startCoords && this.setState.endCoords){
-      const origin = this.state.startCoords;
-      const destination = this.state.endCoords;
-
-      directionsService.route(
-        {
-          origin: origin,
-          destination: destination,
-          travelMode: google.maps.TravelMode.DRIVING
-        },
-        (result, status) => {
-          if (status === google.maps.DirectionsStatus.OK) {
-            this.setState({
-              directions: result
-            });
-          } else {
-            console.error(`error fetching directions ${result}`);
-          }
-        }
-      );
+  directionsService.route(
+    {
+      origin: origin,
+      destination: destination,
+      travelMode: google.maps.TravelMode.DRIVING
+    },
+    (result, status) => {
+      if (status === google.maps.DirectionsStatus.OK) {
+        this.setState({
+          directions: result
+        });
+        this.props.onRouteMade({directions: result});
+      } else {
+        console.error(`error fetching directions ${result}`);
+      }
     }
+  );
+}
 
+  componentDidMount() {
     this.getGeoLocation();
   }
 
@@ -137,7 +140,7 @@ async handleMapClick (ref, map, ev) {
       <GoogleMap
         defaultCenter={{ lat: 40.756795, lng: -73.954298 }}
         center={this.state.centerCoords}
-        defaultZoom={13}
+        defaultZoom={14}
         onClick={this.handleMapClick}
       >
         <DirectionsRenderer

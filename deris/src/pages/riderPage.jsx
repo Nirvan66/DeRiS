@@ -3,6 +3,7 @@ import './styles/riderPage.css'
 import { TwoButtonTwoTextSubmission } from '../modules/textInputs.jsx'
 import { withScriptjs } from "react-google-maps";
 import  Map  from '../modules/googleMap.jsx'
+import { totalRouteDistance } from '../js_modules/googleMapUtils.js'
 /**
  * The module for the rider page
  * 
@@ -35,6 +36,7 @@ class RiderPage extends React.Component {
         this.onRequestSubmit = this.onRequestSubmit.bind(this);
         this.onCancelSubmit = this.onCancelSubmit.bind(this);
         this.onMapClick = this.onMapClick.bind(this);
+        this.onRouteMade = this.onRouteMade.bind(this);
     }
     // keep tracking the user input to use for submission. need to discern by name
     onChange(event) {
@@ -75,6 +77,13 @@ class RiderPage extends React.Component {
         console.log('location :' + payload.location)
     }
 
+    onRouteMade(payload) {
+        const {directions} = payload;
+        console.log(directions)
+        const totalDistance = totalRouteDistance(directions.routes[0]);
+        console.log(totalDistance);
+    }
+
     render() {
         if (!this.props.show){
             return (<div class="empty"></div>)
@@ -97,6 +106,7 @@ class RiderPage extends React.Component {
                 googleMapURL={"https://maps.googleapis.com/maps/api/js?key=" + API_KEY }
                 loadingElement={<div style={{ height: `100%`, width: '100%' }} />}
                 onClick={this.onMapClick}
+                onRouteMade={this.onRouteMade}
             />
             </div>
         )
