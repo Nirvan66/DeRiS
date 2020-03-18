@@ -1,5 +1,6 @@
 import React from 'react';
 import { Form, Button } from 'react-bootstrap';
+import { InvalidTextInputError } from './errors'
 
 /**
  * Function for displaying a single text box with no submit function just onChange function
@@ -36,6 +37,8 @@ function SingleTextBox (props) {
  *                              secondary:  {submitFunction: callable, label: string}
  *                              onChange:   callable
  *                              inputLabel: string
+ *                              validInput: boolean
+ *                              invalidInputMessage: string      
  *                          }
  * 
  * @return {React DOM element}
@@ -47,6 +50,10 @@ function TwoButtonTextSubmission (props){
                 <Form.Label>{props.inputLabel}</Form.Label>
                 <Form.Control onChange={props.onChange}/>
             </Form.Group>
+            <InvalidTextInputError
+                    show={!props.validInput}
+                    errorMessage={props.invalidInputMessage}
+             ></InvalidTextInputError>
             <div class="TwoButtonTextSubmissionButtonContainer">
                 <Button class="PrimaryButton" type="submit" size="lg" block>{props.primary.label}</Button>
                 <Button class="SecondaryButton" size="lg" onClick={props.secondary.submitFunction} block>{props.secondary.label}</Button>

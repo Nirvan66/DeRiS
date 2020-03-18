@@ -1,0 +1,18 @@
+.InvalidTextInputError {
+    width: 100%;
+    border-color: darkred;
+    border-width: 2px;
+    border-style: solid;
+    background-color: lightcoral;
+    color: darkred;
+    height: 50px;
+    border-radius: 10px;
+    font-weight: 500;
+    padding: .6em;
+    padding-left: 2em;
+
+}
+
+.InvalidTextInputError p {
+    vertical-align: middle;
+}

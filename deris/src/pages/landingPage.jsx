@@ -1,7 +1,11 @@
 import React from 'react';
 import './styles/landingPage.css'
-import { Jumbotron } from 'react-bootstrap';
+import { Jumbotron, ThemeProvider } from 'react-bootstrap';
 import {TwoButtonTextSubmission} from '../modules/textInputs'
+import { isValidAddress } from '../js_modules/ethereumUtils.js'
+
+const INVALID_ADDRESS_MSG = 'ERROR: Ethereum address provided is not a valid address'
+const DEV = true;
 
 /**
  * The module for the landing page. Uses a two button submission
@@ -18,25 +22,45 @@ class LandingPage extends React.Component {
     constructor (props) {
         super(props);
         this.state = {
-            ethereumAddress: ''
+            ethereumAddress: '',
+            validEthereumAddress: true,
         }
         this.onChange = this.onChange.bind(this);
         this.onRiderSubmit = this.onRiderSubmit.bind(this);
         this.onDriverSubmit = this.onDriverSubmit.bind(this);
+        this.checkAndSubmitAddress = this.checkAndSubmitAddress.bind(this);
     }
     // keep tracking the user input to use for submission
     onChange(event) {
         this.setState({ethereumAddress: event.target.value})
     }
 
+    /**
+     * Check if the ethereum is valid. if not, show a warning, otherwise pass it up
+     * 
+     * @param {string} role either 'rider' or 'driver' 
+     */
+    checkAndSubmitAddress(role){
+        if (!isValidAddress(this.state.ethereumAddress) && !DEV){
+            this.setState({
+                ethereumAddress: null,
+                validEthereumAddress: false
+            })
+        }
+        else {
+            this.props.onSubmit({ethereumAddress: this.state.ethereumAddress, role: role});
+        }
+
+    }
+
     // Do different things based on which button is clicked
     onRiderSubmit(event) {
         event.preventDefault();
-        this.props.onSubmit({ethereumAddress: this.state.ethereumAddress, role: 'rider'});
+        this.checkAndSubmitAddress('rider');
     }
     onDriverSubmit(event) {
         event.preventDefault();
-        this.props.onSubmit({ethereumAddress: this.state.ethereumAddress, role: 'driver'});
+        this.checkAndSubmitAddress('driver');
     }
 
     // render the input field
@@ -47,12 +71,19 @@ class LandingPage extends React.Component {
         const secondary = {
             submitFunction: this.onDriverSubmit, label: 'Driver'
         }
-        return <TwoButtonTextSubmission 
+        return (
+            <div class="LandingPageInputsContainer">
+                <TwoButtonTextSubmission 
                     inputLabel="Ethereum Address"
                     primary={primary}
                     secondary={secondary}
                     onChange={this.onChange}
+                    validInput={this.state.validEthereumAddress}
+                    invalidInputMessage={INVALID_ADDRESS_MSG}
                 ></TwoButtonTextSubmission>
+            </div>
+            
+        )
     }
     render () {
         if (!this.props.show){
