@@ -37,6 +37,10 @@ contract Voting {
     votesReceived[candidate] += 1;
   }
 
+  function getGas() public view returns(uint){
+    return address(this).balance;
+  }
+
   function validCandidate(bytes32 candidate) view public returns (bool) {
     for(uint i = 0; i < candidateList.length; i++) {
       if (candidateList[i] == candidate) {
