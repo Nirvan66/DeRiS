@@ -9,7 +9,8 @@ import {
 } from "react-google-maps";
 
 import {
-  getReverseGeocodingData
+  getReverseGeocodingData,
+  getGeocodingData
 } from '../js_modules/googleMapUtils.js'
 
 /**
@@ -61,7 +62,6 @@ async handleMapClick (ref, map, ev) {
   console.log('starting coordinates: ')
   console.log(this.state.startCoords)
   const isStartLoc = this.state.startCoords === null;
-  const addr = {}
 
   // pass the location and address up to the caller
   const propsOnClick = (location, isStartLoc, addr) => {
@@ -89,6 +89,7 @@ async handleMapClick (ref, map, ev) {
   }
 }
 
+// get users current geolocation data to center map around
  getGeoLocation() {
   if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -106,9 +107,9 @@ async handleMapClick (ref, map, ev) {
   }
 }
 
+// add a route from the locations in the map
 addRoute() {
   const directionsService = new google.maps.DirectionsService();
-  console.log('IN THE IF BOTH COORDS')
   const origin = this.state.startCoords;
   const destination = this.state.endCoords;
 
@@ -131,8 +132,24 @@ addRoute() {
   );
 }
 
+// wait for component to load/mount before executing geolocation and letting parent know it mounted
   componentDidMount() {
     this.getGeoLocation();
+  }
+
+  // given an address, add a marker to the map at that location
+  // address doesn't need to be valid, we will check for it here
+  async addMarkerByAddress(address, isStart){
+    if(!address || address === '' || address == undefined){
+      return;
+    }
+    const latLng = await getGeocodingData(address);
+    const coordsPos = isStart ? 'startCoords' : 'endCoords';
+    this.setState(prevState => ({
+      [coordsPos]: latLng,
+      locations: [...prevState.locations, latLng]
+  }));
+
   }
 
   render() {
