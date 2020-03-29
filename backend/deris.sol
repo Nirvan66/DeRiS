@@ -68,6 +68,8 @@ contract Deris{
     }
     
     function getWaitingRiders() public{
+        require(users[msg.sender].isUser==true, "Need to be a user to select rider");
+        require(users[msg.sender].state==Status.DRIVER, "User needs to be in driver mode to pick rider");
         for (uint i=0; i<userList.length; i++) {
             if (users[userList[i]].currPairing == address(0) && users[userList[i]].state == Status.RIDER){
                 emit RiderDetails(users[userList[i]].number, users[userList[i]].pickup, users[userList[i]].dropoff);
@@ -119,8 +121,4 @@ contract Deris{
         users[msg.sender].escrow = 0;
         users[msg.sender].paid = 0;
     }
-    
-    function getGas() public view returns(uint){
-        return address(this).balance;
-      }
 }
