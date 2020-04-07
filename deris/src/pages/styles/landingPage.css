@@ -1,0 +1,30 @@
+.DerisHeader {
+    text-align: center;
+}
+
+.LandingPage .jumbotron {
+    background-color: black;
+    text-shadow: -1px -1px 0 goldenrod, 1px -1px 0 goldenrod, -1px 1px 0 goldenrod, 1px 1px 0 goldenrod;
+    color: black;
+}
+
+.LandingPage .AddressInputContainer {
+    width: 75%;
+    margin-left: 12.5%;
+}
+
+.LandingPage .AddressInputContainer .TwoButtonTextSubmissionButtonContainer{
+    margin-top: 30px;
+    text-align: center;
+}
+
+.LandingPage .AddressInputContainer .TwoButtonTextSubmissionButtonContainer button:first-of-type {
+    color: white;
+    background-color: goldenrod;
+    border-color: goldenrod;
+}
+.LandingPage .AddressInputContainer .TwoButtonTextSubmissionButtonContainer button:last-of-type {
+   color: white;
+   background-color: black;
+   border-color: black;
+}

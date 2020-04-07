@@ -1,0 +1,31 @@
+.RiderPage {
+    background-color: gainsboro;
+}
+
+.RiderPage .TwoButtonTwoTextSubmissionContainer {
+    width: 75%;
+    margin-left: 12.5%;
+}
+
+.RiderPage .TwoButtonTwoTextSubmissionContainer .TwoButtonTwoTextSubmissionButtonContainer{
+    margin: 10px;
+    width: 100%;
+    text-align: center;
+}
+
+.RiderPage .TwoButtonTwoTextSubmissionContainer .TwoButtonTwoTextSubmissionButtonContainer button{
+    min-width: 40%;
+    margin: 10px;
+}
+
+.RiderPage .TwoButtonTwoTextSubmissionContainer .TwoButtonTwoTextSubmissionButtonContainer button:first-of-type{
+    background-color: goldenrod;
+    border-color: goldenrod;
+    color: white;
+}
+
+.RiderPage .TwoButtonTwoTextSubmissionContainer .TwoButtonTwoTextSubmissionButtonContainer button:last-of-type{
+    background-color: black;
+    border-color: black;
+    color: white;
+}
