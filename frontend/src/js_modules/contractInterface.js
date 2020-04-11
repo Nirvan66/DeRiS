@@ -58,7 +58,7 @@ function requestRide(startLoc, endLoc, rideCost, ethereumAddress){
  * @param {String} ethereumAddress string with the etheruem address of the driver looking for rides
  */
 function getCurrentRides(ethereumAddress){
-    contract.methods.getWaitingRiders().estimateGas({from: ethereumAddress}).then((gasAmount) => {
+    contract.methods.s().estimateGas({from: ethereumAddress}).then((gasAmount) => {
         console.log(gasAmount)
         contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
             console.log('Value in getCurrentRides')
