@@ -5,7 +5,7 @@ import {TwoButtonTextSubmission} from '../modules/textInputs'
 import { isValidAddress } from '../js_modules/ethereumUtils.js'
 
 const INVALID_ADDRESS_MSG = 'ERROR: Ethereum address provided is not a valid address'
-const DEV = true;
+const DEV = false;
 
 /**
  * The module for the landing page. Uses a two button submission

@@ -1,4 +1,3 @@
-import fs from 'fs';
 import Web3 from 'web3';
 
 let web3, abi, contract;
@@ -8,17 +7,17 @@ let web3, abi, contract;
  * 
  * @param {String} portNumber       String port number to deploy contract on
  * @param {String} contractAddress  String ethererum address to deploy the contract on
- * @param {String} abiFile          String path the the abi file to load
+ * @param {Object} abiFile          Object containing the abi
  */
-async function initBlockchain(portNumber, contractAddress, abiFile) {
+async function initBlockchain(portNumber, contractAddress, abiInterface) {
     web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:"+portNumber));
-    console.log(abiFile)
-    abi = JSON.parse(fs.readFileSync(abiFile));
 
-    contract = new web3.eth.Contract(abi);
+    contract = new web3.eth.Contract(abiInterface);
     contract.options.address = contractAddress;
 
     watchRiderDetails();
+
+    return contract;
 }
 
 /**
@@ -45,9 +44,9 @@ function setDriver(ethereumAddress){
 function requestRide(startLoc, endLoc, rideCost, ethereumAddress){
     const startLatLng = [startLoc.lat, startLoc.lng].join(',');
     const endLatLng = [endLoc.lat, endLoc.lng].join(',');
-    contract.methods.rideRequest(startLatLng, endLatLng, rideCost).estimateGas({from: ethereumAddress}).then(function(gasAmount){
+    contract.methods.rideRequest(startLatLng, endLatLng, rideCost).estimateGas({from: ethereumAddress}).then((gasAmount) => {
         console.log(gasAmount)
-        contract.methods.rideRequest(startLatLng, endLatLng, rideCost).send({from: ethereumAddress, gas: gasAmount}).then(function(value) {
+        contract.methods.rideRequest(startLatLng, endLatLng, rideCost).send({from: ethereumAddress, gas: gasAmount}).then((value) => {
             console.log(value)
             })
         })
@@ -59,10 +58,12 @@ function requestRide(startLoc, endLoc, rideCost, ethereumAddress){
  * @param {String} ethereumAddress string with the etheruem address of the driver looking for rides
  */
 function getCurrentRides(ethereumAddress){
-    contract.methods.getWaitingRiders().estimateGas({from: ethereumAddress}).then(function(gasAmount){
+    contract.methods.getWaitingRiders().estimateGas({from: ethereumAddress}).then((gasAmount) => {
         console.log(gasAmount)
-        contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasAmount}).then(function(value) {
-            console.log(value.events.RiderDetails.returnValues)
+        contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
+            console.log('Value in getCurrentRides')
+            console.log(value);
+            // console.log(value.events.RiderDetails.returnValues)
             })
         })
 }
@@ -72,7 +73,7 @@ function getCurrentRides(ethereumAddress){
  * initialized after contract is initialized
  */
 function watchRiderDetails(){
-    contract.RiderDetails().watch(function(error, result){
+    contract.events.RiderDetails().on('data', (error, result) => {
         if (!error)
         {
             console.log(result)

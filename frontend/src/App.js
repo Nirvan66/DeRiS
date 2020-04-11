@@ -5,19 +5,43 @@ import LandingPage from './pages/landingPage.jsx'
 import RiderPage from './pages/riderPage.jsx'
 import DriverPage from './pages/driverPage.jsx'
 import RideProgressPage from './pages/rideProgressPage.jsx'
-import { initBlockchain } from './js_modules/contractInterface'
+import {derisInterface} from './deris_sol_Deris_abi'
+import { 
+  initBlockchain,
+  setDriver, 
+  requestRide,
+  getCurrentRides
+} from './js_modules/contractInterface'
+
+const NO_BLOCKCHAIN_DEV = false;
 
 class App extends Component {
-  // componentWillMount() {
-  //   this.loadBlockchainData();
-  // }
+  componentWillMount() {
+    this.loadBlockchainData()
+  }
 
-  // async loadBlockchainData() {
-  //   const abiFile = '../backend/js_modules/deris_sol_Deris.abi';
-  //   const portNumber = '7545';
-  //   const contractAddress = "0xDC825F515Dd94DFAcB9a4750E73F33D33E48337b";
-  //   initBlockchain(portNumber, contractAddress, abiFile);
-  // }
+  async loadBlockchainData() {
+    if (NO_BLOCKCHAIN_DEV) { return; }
+
+    const portNumber = '7545';
+    // This should be done on submission of the landing page
+    // const accounts = await web3.eth.getAccounts()
+    // this.setState({ account: accounts[0] })
+    const address = '0xFc4D5B8779398F2707EDd55dddb243FA7503dD86';
+
+    const blockchainFunctions = initBlockchain(portNumber, address, derisInterface);
+    
+    this.setState({ blockchainFunctions });
+
+    // const taskCount = await todoList.methods.taskCount().call()
+    // this.setState({ taskCount })
+    // for (var i = 1; i <= taskCount; i++) {
+    //   const task = await todoList.methods.tasks(i).call()
+    //   this.setState({
+    //     tasks: [...this.state.tasks, task]
+    //   })
+    // }
+  }
 
   constructor(props) {
     super(props)
@@ -33,7 +57,10 @@ class App extends Component {
       isLandingPage: true,
       isRiderPage: false,
       isDriverPage: false,
-      isRideProgressPage: false
+      isRideProgressPage: false,
+      // blockchain functions
+      blockchainFunctions: null,
+      currentRides: null
     }
 
     //  bindings
@@ -48,17 +75,27 @@ class App extends Component {
   onLandingPageSubmit(payload) {
     const isRiderPage = payload.role == 'rider';
 
+    const currentRides = isRiderPage ? null : getCurrentRides(payload.ethereumAddress);
+
+    if (!isRiderPage){
+      setDriver(payload.ethereumAddress);
+    }
+
     this.setState({
       ethereumAddress: payload.ethereumAddress,
       isLandingPage: false,
-      isRiderPage: isRiderPage,
-      isDriverPage: !isRiderPage
+      isRiderPage,
+      isDriverPage: !isRiderPage,
+      currentRides
     });
   }
 
   onRiderPageSubmit(payload){
     const isContinuing = payload.requestType == 'request';
     console.log('Rider continuing ride', isContinuing);
+    if (isContinuing){
+      requestRide(payload.startLocation, payload.endLocation, 10, this.state.ethereumAddress);
+    }
 
     this.setState({
       riderStartLocation: payload.startLocation,

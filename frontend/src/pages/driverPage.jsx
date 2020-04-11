@@ -98,6 +98,9 @@ class DriverPage extends React.Component {
 
     // Getting rides from blockchain. Mock for now
     getRides() {
+        const currentRides = this.props.currentRides;
+        console.log('Current rides are')
+        console.log(currentRides)
         return {
             elements:[
                 {
