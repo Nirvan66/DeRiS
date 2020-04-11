@@ -5,7 +5,8 @@ import {
   withScriptjs,
   GoogleMap,
   DirectionsRenderer,
-  Marker
+  Marker, 
+  Circle
 } from "react-google-maps";
 
 import {
@@ -19,7 +20,10 @@ import {
  * @param {*} props 
  */
 const MarkersList = props => {
-  const { locations, ...markerProps } = props;
+  let { locations, ...markerProps } = props;
+  if (locations.length > props.maxLocations){
+    locations = locations.slice(0, props.maxLocations);
+  }
   return (
     <span>
       {locations.map((location, i) => {
@@ -43,50 +47,43 @@ class Map extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      directions: null, 
       startCoords: null,
       endCoords: null,
       startAddr: null,
       endAddr: null, 
       centerCoords: null,
-      locations: []
+      locations: [],
+      directions: null,
+      directionsRendered: false
     };
 
     this.handleMapClick = this.handleMapClick.bind(this);
     this.getGeoLocation = this.getGeoLocation.bind(this);
-    this.addRoute = this.addRoute.bind(this);
+    this.getCircleVals = this.getCircleVals.bind(this);
+
+    this._map = null;
   }
 
+  // asynchronosly handle a map click
 async handleMapClick (ref, map, ev) {
   const location = ref.latLng;
-  console.log('starting coordinates: ')
-  console.log(this.state.startCoords)
-  const isStartLoc = this.state.startCoords === null;
 
   // pass the location and address up to the caller
-  const propsOnClick = (location, isStartLoc, addr) => {
-      this.props.onClick({location: location, isStartLoc: isStartLoc, address: addr});
+  const propsOnClick = (location, addr) => {
+    if (this.props.onClick) {
+      this.props.onClick({location: location, address: addr});
+    }
   } 
-  // if this is the first click, we want the starting position
-  if (isStartLoc) {
-      this.setState(prevState => ({
-          startCoords: location,
-          locations: [...prevState.locations, location]
-      }));
-      const addr = await getReverseGeocodingData(location.lat(), location.lng());
-      propsOnClick(location, isStartLoc, addr);
+  // if props has a set max number of locations, return
+  if (this.props.maxLocations && this.props.maxLocations <= this.state.locations.length){
+    return;
   }
-  // if its the second one, we want the destination address
-  else if (this.state.endCoords === null) {
-      this.setState(prevState => ({
-          endCoords: location,
-          locations: [...prevState.locations, location]
-      }));
-      const addr = await getReverseGeocodingData(location.lat(), location.lng());
-      
-      propsOnClick(location, isStartLoc, addr);
-      this.addRoute();
-  }
+  // update to add a new location
+  this.setState( prevState => ({
+    locations: [...prevState.locations, location]
+  }));
+  const addr = await getReverseGeocodingData(location.lat(), location.lng());
+  propsOnClick(location, addr);
 }
 
 // get users current geolocation data to center map around
@@ -107,29 +104,48 @@ async handleMapClick (ref, map, ev) {
   }
 }
 
-// add a route from the locations in the map
-addRoute() {
+addRoute(startLoc, endLoc) {
   const directionsService = new google.maps.DirectionsService();
-  const origin = this.state.startCoords;
-  const destination = this.state.endCoords;
+  const origin = startLoc;
+  const destination = endLoc;
+
+  console.log('Start Location')
+  console.log(startLoc)
+  console.log('End Location')
+  console.log(endLoc)
 
   directionsService.route(
-    {
+      {
       origin: origin,
       destination: destination,
       travelMode: google.maps.TravelMode.DRIVING
-    },
-    (result, status) => {
+      },
+      (result, status) => {
       if (status === google.maps.DirectionsStatus.OK) {
-        this.setState({
-          directions: result
-        });
-        this.props.onRouteMade({directions: result});
+        console.log('rendering directions')
+          this.setState({
+            directionsRendered: true,
+            directions: result
+          })
       } else {
-        console.error(`error fetching directions ${result}`);
+          console.log('Error: Directions could not be found')
       }
+      }
+  )
+}
+
+// get the properties of the circle
+getCircleVals() {
+  const getCirc = (children) => {
+    for (let child of children){
+      if (child && child.type && child.type.name === 'Circle') return child;
     }
-  );
+  }
+  const circ = getCirc(this._map.props.children);
+  const newRadius = circ.props.radius;
+  if (this.props.onRadiusChanged) {
+    this.props.onRadiusChanged({radius: newRadius})
+  }
 }
 
 // wait for component to load/mount before executing geolocation and letting parent know it mounted
@@ -139,39 +155,56 @@ addRoute() {
 
   // given an address, add a marker to the map at that location
   // address doesn't need to be valid, we will check for it here
-  async addMarkerByAddress(address, isStart){
+  async addMarkerByAddress(address){
     if(!address || address === '' || address == undefined){
       return;
     }
     const latLng = await getGeocodingData(address);
-    const coordsPos = isStart ? 'startCoords' : 'endCoords';
     this.setState(prevState => ({
-      [coordsPos]: latLng,
       locations: [...prevState.locations, latLng]
   }));
-
   }
 
   render() {
     const GoogleMapExample = withGoogleMap(props => (
       <GoogleMap
+        ref={(map) => this._map = map}
         defaultCenter={{ lat: 40.756795, lng: -73.954298 }}
-        center={this.state.centerCoords}
+        center={this.props.center ? this.props.center : this.state.centerCoords}
         defaultZoom={14}
         onClick={this.handleMapClick}
       >
-        <DirectionsRenderer
+        {this.state.directions && this.state.directionsRendered && (
+          <DirectionsRenderer
           directions={this.state.directions}
         />
-        <MarkersList locations={this.state.locations}/>
+        )}
+        <MarkersList locations={this.state.locations} maxLocations={this.props.maxLocations || 10}/>
+        {this.props.circle && this.props.circle.show && (
+          <Circle
+            defaultCenter={
+              this.props.circle.center
+            }
+            radius={this.props.circle.radius}
+            options={this.props.circle.options}
+            editable={this.props.circle.editable || false}
+            draggable={this.props.circle.draggable || false}
+            onRadiusChanged={this.getCircleVals}
+            onCenterChanged={this.getCircleVals}
+          >  
+          </Circle>
+        )}
       </GoogleMap>
     ));
-
+    if (this.props.directions && !this.state.directionsRendered){
+      this.addRoute(this.props.directions.startLoc, this.props.directions.endLoc);
+    }
     return (
       <div>
         <GoogleMapExample
           containerElement={<div style={{ height: `500px`, width: "100%" }} />}
           mapElement={<div style={{ height: `100%` }} />}
+          directions={this.state.directions}
         />
       </div>
     );

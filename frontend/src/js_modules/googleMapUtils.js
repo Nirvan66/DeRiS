@@ -76,9 +76,18 @@ function makeInputAutoComplete (inputField, options) {
     return new google.maps.places.Autocomplete(inputField, options);
 }
 
+/**
+ * Convert miles to meters
+ * @param {Number, String} miles     Number or string of desired miles to meters
+ */
+function milesToMeters(miles){
+    return parseFloat(miles) * 1609.34;
+}
+
 export  {
     getReverseGeocodingData,
     getGeocodingData,
     totalRouteDistance,
-    makeInputAutoComplete
+    makeInputAutoComplete,
+    milesToMeters
 }

@@ -10,6 +10,7 @@ import { InvalidTextInputError } from './errors'
  *                          {
  *                              onChange:   callable
  *                              label:      string
+ *                              value:      string
  *                          }
  * 
  * @returns {React DOM element}
@@ -20,7 +21,7 @@ function SingleTextBox (props) {
             <Form> 
                 <Form.Group >
                     <Form.Label>{props.label}</Form.Label>
-                    <Form.Control onChange={props.onChange}/>
+                    <Form.Control onChange={props.onChange} value={props.value || ''}/>
                 </Form.Group>
             </Form>
         </div>

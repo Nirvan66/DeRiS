@@ -5,17 +5,19 @@ import LandingPage from './pages/landingPage.jsx'
 import RiderPage from './pages/riderPage.jsx'
 import DriverPage from './pages/driverPage.jsx'
 import RideProgressPage from './pages/rideProgressPage.jsx'
+import { initBlockchain } from './js_modules/contractInterface'
 
 class App extends Component {
-  componentWillMount() {
-    this.loadBlockchainData()
-  }
+  // componentWillMount() {
+  //   this.loadBlockchainData();
+  // }
 
-  async loadBlockchainData() {
-    const web3 = new Web3(Web3.givenProvider || "http://localhost:8545")
-    const accounts = await web3.eth.getAccounts()
-    this.setState({ account: accounts[0] })
-  }
+  // async loadBlockchainData() {
+  //   const abiFile = '../backend/js_modules/deris_sol_Deris.abi';
+  //   const portNumber = '7545';
+  //   const contractAddress = "0xDC825F515Dd94DFAcB9a4750E73F33D33E48337b";
+  //   initBlockchain(portNumber, contractAddress, abiFile);
+  // }
 
   constructor(props) {
     super(props)

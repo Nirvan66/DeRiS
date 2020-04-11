@@ -2,6 +2,10 @@
     background-color: gainsboro;
 }
 
+.driverPageContainer .textBoxTableContainer {
+    width: 100%
+}
+
 .driverPageContainer .SingleTextBoxContainer {
     width: 75%;
     margin-left: 12.5%;

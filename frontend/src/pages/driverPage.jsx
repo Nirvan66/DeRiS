@@ -3,6 +3,12 @@ import './styles/driverPage.css'
 import { ButtonWithLabelsList } from '../modules/lists.jsx'
 import { SingleTextBox } from '../modules/textInputs.jsx'
 import { SingleButton } from '../modules/buttonInputs.jsx'
+import { withScriptjs } from "react-google-maps";
+import Map from '../modules/googleMap.jsx';
+import { milesToMeters } from '../js_modules/googleMapUtils.js'
+
+const API_KEY = 'AIzaSyChykMQlbWKcQy-qixkVnXCrGVoy-vdlM4'
+const MapLoader = withScriptjs(Map);
 
 /**
  * The module for the driver page
@@ -25,9 +31,16 @@ class DriverPage extends React.Component {
         super(props);
         this.state = {
             center: null,
+            centerAddress: null,
             radius: null,
+            stringRadius: null,
             jobInfo: null,
             isCancel: false
+        }
+
+        this.localVals = {
+            hasCenter: false,
+            hasRadius: false,
         }
 
         this.getRides = this.getRides.bind(this);
@@ -35,17 +48,32 @@ class DriverPage extends React.Component {
         this.onRadiusChange = this.onRadiusChange.bind(this);
         this.onJobAccept = this.onJobAccept.bind(this);
         this.onCancelSubmit = this.onCancelSubmit.bind(this);
+        this.onMapClick = this.onMapClick.bind(this);
+        this.onCircleRadiusChange = this.onCircleRadiusChange.bind(this);
     }
     // update the centering location 
     onCenterLocChange(event) {
         event.preventDefault();
         this.setState({center: event.target.value});
     }
+
     // update the radius
     onRadiusChange(event) {
         event.preventDefault();
-        this.setState({radius: event.target.value});
+        console.log(event)
+        let radius = event.target.value;
+        // verify that its an ok number
+        if (isNaN(parseFloat(radius)) || parseFloat(radius) < 0){
+            this.localVals.hasRadius = 0;
+            this.setState({radius: 0, stringRadius: '0'})
+            return;
+        }
+        this.setState({radius: parseFloat(radius), stringRadius: radius});
+        this.localVals.hasRadius = true;
+        console.log('Radius is set to ')
+        console.log(radius)
     }
+
     // return the job details from the list item clicked
     onJobAccept(event) {
         const sep = '/?/';
@@ -59,6 +87,7 @@ class DriverPage extends React.Component {
         // pass the data back up to the caller
         this.props.onSubmit(state);
     }
+
     // handle the cancel button 
     onCancelSubmit(event) {
         event.preventDefault();
@@ -66,6 +95,7 @@ class DriverPage extends React.Component {
         state.isCancel = true;
         this.props.onSubmit(state);
     }
+
     // Getting rides from blockchain. Mock for now
     getRides() {
         return {
@@ -103,21 +133,68 @@ class DriverPage extends React.Component {
         }
     }
 
+    onMapClick(payload){
+        this.localVals.hasCenter = true;
+        this.setState({
+            center: payload.location,
+            centerAddress: payload.address
+        });
+    }
+
+    onCircleRadiusChange(payload){
+        console.log(payload)
+    }
+
     render() {
         if (!this.props.show){
             return (<div class="empty"></div>)
         }
         const elements = this.getRides();
+        const circle = {
+            center: this.state.center,
+            radius: milesToMeters(this.state.radius),
+            show: this.localVals.hasCenter && this.localVals.hasRadius,
+            editable: true,
+            dragable: false,
+            options: {
+                strokeColor: "#ff0000"
+            },
+            onRadiusChanged: this.onCircleRadiusChange
+        }
+
+        const centerMapOn = this.state.center ? this.state.center: null;
+
         return (
             <div class="driverPageContainer">
-                <SingleTextBox
-                    label='Location'
-                    onChange={this.onCenterLocChange}
-                ></SingleTextBox>
-                <SingleTextBox
-                    label='Radius'
-                    onChange={this.onRadiusChange}
-                ></SingleTextBox>
+                <table class="textBoxTableContainer">
+                    <tbody>
+                    <tr>
+                        <td>
+                        <SingleTextBox
+                            label='Location'
+                            onChange={this.onCenterLocChange}
+                            value={this.state.centerAddress}
+                        ></SingleTextBox>
+                        </td>
+                        <td>
+                        <SingleTextBox
+                            label='Radius (miles)'
+                            onChange={this.onRadiusChange}
+                            value={this.state.stringRadius}
+                        ></SingleTextBox>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <MapLoader
+                    googleMapURL={"https://maps.googleapis.com/maps/api/js?key=" + API_KEY }
+                    loadingElement={<div style={{ height: `100%`, width: '100%' }} />}
+                    onClick={this.onMapClick}
+                    circle={circle}
+                    maxLocations={1}
+                    onRadiusChanged={this.onCircleRadiusChange}
+                    center={centerMapOn}
+                />
                 <ButtonWithLabelsList
                     elements={elements.elements}
                 ></ButtonWithLabelsList>
