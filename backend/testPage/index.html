@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.37/dist/web3.min.js"></script>
+<script src="func.js"></script>
+
+<body>
+
+<h2>Add user</h2>
+
+<label for="ethAddr">Etherium Address:</label>
+
+<input type="text" id="ethAddr" name="ethAddr"><br><br>
+
+<button type="button" onclick=login()>Login</button>
+
+<br><label id='usrAddr'></label>
+<br><label id='usrNumber'></label>
+
+<h2>Request</h2>
+<label for="startLoc">Start Location:</label>
+
+<input type="text" id="startLoc" name="startLoc"><br><br>
+
+<label for="endLoc">End Location:</label>
+
+<input type="text" id="endLoc" name="endLoc"><br><br>
+
+<button type="button" onclick=rideRequest()>Request Ride</button>
+
+<button type="button" onclick=driveRequest()>Request Drive</button>
+
+<br><label id='riderOut'></label>
+
+<h2>Get riders</h2>
+<button type="button" onclick=getRiders()>Get riders</button>
+<br><label id='riderList'></label>
+
+<h2>Pick Rider</h2>
+<label for="riderNo">Rider Number:</label>
+
+<input type="text" id="riderNo" name="riderNo"><br><br>
+
+<button type="button" onclick=pickRider()>Pick Rider</button>
+
+<br><label id='picRider'></label>
+
+<h2>Trip Progress</h2>
+
+</body>
+</html> 

@@ -12,11 +12,14 @@ contract Deris{
         uint paid;
     }
     
+    
     mapping (address => user) public users;
     
     address [] public userList;
     
     event RiderDetails(uint riderNumber, string pick, string drop);
+    event RiderPicked(uint riderNumber);
+    
     constructor() public {
         
     }
@@ -67,6 +70,15 @@ contract Deris{
         }
     }
     
+    function getNumber() view public returns(int){
+        if (users[msg.sender].isUser==true){
+            return int(users[msg.sender].number);
+        }
+        else{
+            return -1;
+        }
+    }
+    
     function getWaitingRiders() public{
         require(users[msg.sender].isUser==true, "Need to be a user to select rider");
         require(users[msg.sender].state==Status.DRIVER, "User needs to be in driver mode to pick rider");
@@ -77,13 +89,17 @@ contract Deris{
         }
     }
     
+
     function pickRider(uint riderNumber) public{
         require(users[msg.sender].isUser==true, "Need to be a user to select rider");
         require(users[msg.sender].state==Status.DRIVER, "User needs to be in driver mode to pick rider");
-        require(users[userList[riderNumber]].currPairing == address(0), "user currently paired");
+        require(users[userList[riderNumber]].currPairing == address(0), "rider currently paired");
+        require(users[msg.sender].currPairing == address(0), "driver currently paired");
+        require(userList[riderNumber] != msg.sender, "Cannot pick yourself");
         //pairing driver and rider
         users[userList[riderNumber]].currPairing = msg.sender;
         users[msg.sender].currPairing = userList[riderNumber];
+        emit RiderPicked(riderNumber);
     }
     
     function payDriver() public payable{
@@ -96,23 +112,10 @@ contract Deris{
         users[msg.sender].paid = users[msg.sender].paid + msg.value;
     }
     
-    function rideComplete() public {
+    function userReset() public {
         require(users[msg.sender].isUser == true, "Need to be a user to complete ride");
-        require(users[msg.sender].state == Status.RIDER, "User needs to be in rider mode to complete ride");
-        require(users[msg.sender].currPairing != address(0), "Rider needs to have an assigned driver to complete ride");
-        
-        users[msg.sender].state = Status.INACTIVE;
-        users[msg.sender].currPairing = address(0);
-        users[msg.sender].pickup = '';
-        users[msg.sender].dropoff = '';
-        users[msg.sender].escrow = 0;
-        users[msg.sender].paid = 0;
-    }
-    
-    function driveComplete() public {
-        require(users[msg.sender].isUser == true, "Need to be a user to complete ride");
-        require(users[msg.sender].state == Status.DRIVER, "User needs to be in drive mode to complete drive");
-        require(users[msg.sender].currPairing != address(0), "Driver needs to have an assigned rider to complete ride");
+        require(users[msg.sender].state == Status.RIDER || users[msg.sender].state == Status.DRIVER, "User needs to be in rider or driver mode to complete ride");
+        require(users[msg.sender].currPairing != address(0), "User needs to be paired to complete ride");
         
         users[msg.sender].state = Status.INACTIVE;
         users[msg.sender].currPairing = address(0);
