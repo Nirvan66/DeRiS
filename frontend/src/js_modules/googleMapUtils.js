@@ -84,10 +84,40 @@ function milesToMeters(miles){
     return parseFloat(miles) * 1609.34;
 }
 
+/**
+ * Convert meters to miles
+ * @param {Number, String} meters     Number or string of desired miles to meters
+ */
+function metersToMiles(meters){
+    return parseFloat(meters)/1609.34;
+}
+
+/**
+ * Find the direct distance between two points
+ * @param {Geocoded location} point1 Geolocation point with .lat and .lng callables
+ * @param {Geocoded location} point2 Geolocation point with .lat and .lng callables
+ * 
+ * @returns {Float} the distance between the two points in meters
+ */
+function getDistance (point1, point2) {
+    let R = 6378137; // Earth’s mean radius in meter
+    const rad = val => val*(Math.PI/180);
+    let dLat = rad(point2.lat() - point1.lat());
+    let dLong = rad(point2.lng() - point1.lng());
+    let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(rad(point1.lat())) * Math.cos(rad(point2.lat())) *
+      Math.sin(dLong / 2) * Math.sin(dLong / 2);
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    let d = R * c;
+    return d; // returns the distance in meter
+  };
+
 export  {
     getReverseGeocodingData,
     getGeocodingData,
     totalRouteDistance,
     makeInputAutoComplete,
-    milesToMeters
+    milesToMeters,
+    metersToMiles,
+    getDistance
 }

@@ -53,6 +53,20 @@ function requestRide(startLoc, endLoc, rideCost, ethereumAddress){
 }
 
 /**
+ * Method called to send a ride request to the blockchain
+ * 
+ * @param {int} riderNumber         
+ */
+function acceptJob(riderNumber, ethereumAddress){
+    contract.methods.pickRider(riderNumber).estimateGas({from: ethereumAddress}).then((gasAmount) => {
+        console.log(gasAmount)
+        contract.methods.pickRider(riderNumber).send({from: ethereumAddress, gas: gasAmount}).then((value) => {
+            console.log(value)
+            })
+        })
+}
+
+/**
  * Method called when requesting the current available rides
  * 
  * @param {String} ethereumAddress string with the etheruem address of the driver looking for rides
@@ -62,7 +76,16 @@ function getCurrentRides(ethereumAddress){
         contract.methods.getWaitingRiders().estimateGas({from: ethereumAddress}).then((gasAmount) => {
             console.log(gasAmount)
             contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
-                resolve(value.events.RiderDetails.returnValues);
+                let results = [];
+                if (value.events.RiderDetails.length && value.events.RiderDetails.length > 1){
+                    for (let rd of value.events.RiderDetails){
+                        results.push(rd.returnValues);
+                    }
+                }
+                else {
+                    results = value.events.RiderDetails.returnValues;
+                }
+                resolve(results);
                 })
             })
     })
@@ -91,5 +114,6 @@ export {
     initBlockchain,
     setDriver, 
     requestRide, 
-    getCurrentRides
+    getCurrentRides, 
+    acceptJob
 }

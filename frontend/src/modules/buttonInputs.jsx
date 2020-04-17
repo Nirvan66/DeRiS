@@ -15,6 +15,8 @@ import { Table, Button } from 'react-bootstrap';
  */
 function ButtonWithLabels(props) {
     const sep = '/?/';
+    console.log('PROPS IN BUTTON WITH LABELS')
+    console.log(props)
     return (
         <Table bordered>
         <tbody class="ButtonWithLabels">

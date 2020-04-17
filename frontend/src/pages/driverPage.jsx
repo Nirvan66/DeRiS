@@ -5,7 +5,7 @@ import { SingleTextBox } from '../modules/textInputs.jsx'
 import { SingleButton } from '../modules/buttonInputs.jsx'
 import { withScriptjs } from "react-google-maps";
 import Map from '../modules/googleMap.jsx';
-import { milesToMeters } from '../js_modules/googleMapUtils.js'
+import { milesToMeters, metersToMiles, getDistance, getReverseGeocodingData } from '../js_modules/googleMapUtils.js'
 
 const API_KEY = 'AIzaSyChykMQlbWKcQy-qixkVnXCrGVoy-vdlM4'
 const MapLoader = withScriptjs(Map);
@@ -35,7 +35,8 @@ class DriverPage extends React.Component {
             radius: null,
             stringRadius: null,
             jobInfo: null,
-            isCancel: false
+            isCancel: false,
+            currentRides: null
         }
 
         this.localVals = {
@@ -60,22 +61,23 @@ class DriverPage extends React.Component {
     // update the radius
     onRadiusChange(event) {
         event.preventDefault();
-        console.log(event)
+        console.log('RAN ON RADIUS CHANGE')
         let radius = event.target.value;
         // verify that its an ok number
         if (isNaN(parseFloat(radius)) || parseFloat(radius) < 0){
             this.localVals.hasRadius = 0;
-            this.setState({radius: 0, stringRadius: '0'})
+            this.setState({radius: 0, stringRadius: ''})
             return;
         }
         this.setState({radius: parseFloat(radius), stringRadius: radius});
         this.localVals.hasRadius = true;
-        console.log('Radius is set to ')
-        console.log(radius)
+        this.getRides();
     }
 
     // return the job details from the list item clicked
     onJobAccept(event) {
+        console.log(event);
+        return;
         const sep = '/?/';
         const state = this.state;
         event.preventDefault();
@@ -99,48 +101,39 @@ class DriverPage extends React.Component {
     // Getting rides from blockchain. Mock for now
     getRides() {
         let currentRides;
-        console.log('Props current rides is')
-        console.log(this.props.currentRides)
-        this.props.currentRides.then(val => {
-            console.log('val in .then is');
-            console.log(val);
-            currentRides = val;
-        });
-        console.log('Current rides are')
-        console.log(currentRides)
-        return {
-            elements:[
-                {
-                    buttonLabel: 'Accept',
-                    labels: [
-                        '123 applewood road', '456 nutmeg avenue', '13'
-                    ],
-                    onClick: this.onJobAccept
-                },
-                {
-                    buttonLabel: 'Accept',
-                    labels: [
-                        '802 fisherman road', '111 colorado avenue', '10'
-                    ],
-                    onClick: this.onJobAccept
-                },
-                {
-                    buttonLabel: 'Accept',
-                    labels: [
-                        '910 lakeview blvd', '100 cold street', '29'
-                    ],
-                    onClick: this.onJobAccept
-                }, 
-                {
-                    buttonLabel: 'Accept',
-                    labels: [
-                        '992 montgomery street', '529 eisenhower blvd', '2'
-                    ],
-                    onClick: this.onJobAccept
-                }
-            ]
-
+        if (!this.state.radius || this.state.radius == 0){
+            return;
         }
+        this.props.currentRides.then(async (val) => {
+            // format of the value when returned is 
+            //{0: "0", 1: "40.0157559841748,-105.27940536896972", 2: "40.01437553630915,-105.22885109345702", riderNumber: "0", pick: "40.0157559841748,-105.27940536896972", drop: "40.01437553630915,-105.22885109345702"}
+            currentRides = val;
+            let validRides = [];
+            const makeForDistanceCalc = loc => {return {lat: () => parseFloat(loc.split(',')[0]), lng: () => parseFloat(loc.split(',')[1])}}
+            for (let ride of currentRides){
+                let distance = getDistance(this.state.center, makeForDistanceCalc(ride.pick));
+                distance = metersToMiles(distance);
+                if (distance <= this.state.radius){
+                    let callableStartLoc = makeForDistanceCalc(ride.pick);
+                    let callableEndLoc = makeForDistanceCalc(ride.drop);
+                    let nonCallableStartLoc = {lat: callableStartLoc.lat(), lng: callableStartLoc.lng()}
+                    let nonCallableEndLoc = {lat: callableEndLoc.lat(), lng: callableEndLoc.lng()}
+                    
+                    const startAddr = await getReverseGeocodingData(nonCallableStartLoc);
+                    const endAddr = await getReverseGeocodingData(nonCallableEndLoc);
+                    let validRide = {
+                        riderNumber: ride.riderNumber,
+                        startLoc: makeForDistanceCalc(ride.pick),
+                        endLoc: makeForDistanceCalc(ride.drop),
+                        distance: distance,
+                        startAddr: startAddr, 
+                        endAddr: endAddr
+                    };
+                    validRides.push(validRide);
+                }
+            }
+            this.setState({currentRides: validRides});
+        });
     }
 
     onMapClick(payload){
@@ -152,14 +145,19 @@ class DriverPage extends React.Component {
     }
 
     onCircleRadiusChange(payload){
-        console.log(payload)
+        let { radius } = payload;
+        radius = metersToMiles(radius);
+        radius = Math.round(radius * 100) / 100;
+        this.setState({radius: parseFloat(radius), stringRadius: radius.toString()});
+        this.getRides();
     }
 
     render() {
+        // return if not supposed to show
         if (!this.props.show){
             return (<div class="empty"></div>)
         }
-        const elements = this.getRides();
+        // circle info if ready for it
         const circle = {
             center: this.state.center,
             radius: milesToMeters(this.state.radius),
@@ -171,9 +169,23 @@ class DriverPage extends React.Component {
             },
             onRadiusChanged: this.onCircleRadiusChange
         }
-
+        // where to center the map
         const centerMapOn = this.state.center ? this.state.center: null;
-
+        // need to "buttonify" the current rides
+        let currentRidesButtons = null;        
+        if (this.state.currentRides && this.state.currentRides.length){
+            currentRidesButtons = [];
+            for (let ride of this.state.currentRides){
+                const butt = {
+                    buttonLabel: 'Accept',
+                    labels: [ride.startAddr, ride.endAddr, ride.distance],
+                    onClick: this.onJobAccept,
+                }
+                currentRidesButtons.push(butt);
+            }
+        }
+        console.log('currentRidesButtons')
+        console.log(currentRidesButtons)
         return (
             <div class="driverPageContainer">
                 <table class="textBoxTableContainer">
@@ -205,9 +217,12 @@ class DriverPage extends React.Component {
                     onRadiusChanged={this.onCircleRadiusChange}
                     center={centerMapOn}
                 />
+                {currentRidesButtons && currentRidesButtons.length && 
                 <ButtonWithLabelsList
-                    elements={elements.elements}
+                    elements={currentRidesButtons}
                 ></ButtonWithLabelsList>
+                }
+                
                 <SingleButton
                     onClick={this.onCancelSubmit}
                     label='Cancel'

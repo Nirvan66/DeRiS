@@ -62,6 +62,7 @@ class Map extends Component {
     this.getCircleVals = this.getCircleVals.bind(this);
 
     this._map = null;
+    this.circle = null;
   }
 
   // asynchronosly handle a map click
@@ -136,13 +137,7 @@ addRoute(startLoc, endLoc) {
 
 // get the properties of the circle
 getCircleVals() {
-  const getCirc = (children) => {
-    for (let child of children){
-      if (child && child.type && child.type.name === 'Circle') return child;
-    }
-  }
-  const circ = getCirc(this._map.props.children);
-  const newRadius = circ.props.radius;
+  const newRadius = this.circle.getRadius();
   if (this.props.onRadiusChanged) {
     this.props.onRadiusChanged({radius: newRadius})
   }
@@ -182,6 +177,7 @@ getCircleVals() {
         <MarkersList locations={this.state.locations} maxLocations={this.props.maxLocations || 10}/>
         {this.props.circle && this.props.circle.show && (
           <Circle
+            ref={circ => this.circle = circ}
             defaultCenter={
               this.props.circle.center
             }
