@@ -27,7 +27,7 @@ class App extends Component {
     // This should be done on submission of the landing page
     // const accounts = await web3.eth.getAccounts()
     // this.setState({ account: accounts[0] })
-    const address = '0xFc4D5B8779398F2707EDd55dddb243FA7503dD86';
+    const address = '0xa9346caCe9F4CF2B5A9a72cc0847838C0f708fE9';
 
     const blockchainFunctions = initBlockchain(portNumber, address, derisInterface);
     
@@ -79,6 +79,8 @@ class App extends Component {
 
     if (!isRiderPage){
       setDriver(payload.ethereumAddress);
+      console.log('Logged in as driver. currentRides is')
+      console.log(currentRides)
     }
 
     this.setState({
@@ -86,7 +88,7 @@ class App extends Component {
       isLandingPage: false,
       isRiderPage,
       isDriverPage: !isRiderPage,
-      currentRides
+      currentRides: currentRides
     });
   }
 
@@ -94,7 +96,9 @@ class App extends Component {
     const isContinuing = payload.requestType == 'request';
     console.log('Rider continuing ride', isContinuing);
     if (isContinuing){
-      requestRide(payload.startLocation, payload.endLocation, 10, this.state.ethereumAddress);
+      const startLoc = {lat: payload.startLocation.lat().toString(), lng: payload.startLocation.lng().toString()};
+      const endLoc = {lat: payload.endLocation.lat(), lng: payload.endLocation.lng()};
+      requestRide(startLoc, endLoc, 10, this.state.ethereumAddress);
     }
 
     this.setState({
@@ -136,6 +140,7 @@ class App extends Component {
         <DriverPage
           onSubmit={this.onDriverPageSubmit}
           show={this.state.isDriverPage}
+          currentRides={this.state.currentRides}
         ></DriverPage>
         <RideProgressPage
           show={this.state.isRideProgressPage}

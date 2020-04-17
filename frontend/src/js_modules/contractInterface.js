@@ -58,14 +58,15 @@ function requestRide(startLoc, endLoc, rideCost, ethereumAddress){
  * @param {String} ethereumAddress string with the etheruem address of the driver looking for rides
  */
 function getCurrentRides(ethereumAddress){
-    contract.methods.s().estimateGas({from: ethereumAddress}).then((gasAmount) => {
-        console.log(gasAmount)
-        contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
-            console.log('Value in getCurrentRides')
-            console.log(value);
-            // console.log(value.events.RiderDetails.returnValues)
+    return new Promise((resolve, reject) => {
+        contract.methods.getWaitingRiders().estimateGas({from: ethereumAddress}).then((gasAmount) => {
+            console.log(gasAmount)
+            contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
+                resolve(value.events.RiderDetails.returnValues);
+                })
             })
-        })
+    })
+    
 }
 
 /**
@@ -76,6 +77,7 @@ function watchRiderDetails(){
     contract.events.RiderDetails().on('data', (error, result) => {
         if (!error)
         {
+            console.log('IN WATCH RIDER EMIT HERE IS RESULT')
             console.log(result)
         } 
         else {
