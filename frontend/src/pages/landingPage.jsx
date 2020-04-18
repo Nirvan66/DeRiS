@@ -1,11 +1,10 @@
 import React from 'react';
 import './styles/landingPage.css'
-import { Jumbotron, ThemeProvider } from 'react-bootstrap';
+import { Jumbotron } from 'react-bootstrap';
 import {TwoButtonTextSubmission} from '../modules/textInputs'
 import { isValidAddress } from '../js_modules/ethereumUtils.js'
 
 const INVALID_ADDRESS_MSG = 'ERROR: Ethereum address provided is not a valid address'
-const DEV = false;
 
 /**
  * The module for the landing page. Uses a two button submission
@@ -41,7 +40,7 @@ class LandingPage extends React.Component {
      * @param {string} role either 'rider' or 'driver' 
      */
     checkAndSubmitAddress(role){
-        if (!isValidAddress(this.state.ethereumAddress) && !DEV){
+        if (!isValidAddress(this.state.ethereumAddress) && !this.props.DEV){
             this.setState({
                 ethereumAddress: null,
                 validEthereumAddress: false

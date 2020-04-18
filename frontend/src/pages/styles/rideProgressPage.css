@@ -1,0 +1,30 @@
+.RideProgressPageHeader {
+    text-align: center;
+}
+
+.RideProgressPage .jumbotron {
+    background-color: black;
+    text-shadow: -1px -1px 0 goldenrod, 1px -1px 0 goldenrod, -1px 1px 0 goldenrod, 1px 1px 0 goldenrod;
+    color: black;
+}
+
+.RideProgressPage .RideDetails {
+    text-align: center;
+}
+
+.RideProgressPage .RideDetails .Details .DetailContainer {
+    padding: 5%;
+}
+
+.RideProgressPage .RideDetails .Details .DetailContainer .DetailLabel {
+    font-weight: 700;
+    font-size: large;
+    width: 100%;
+}
+
+.RideProgressPage .spinner {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+}

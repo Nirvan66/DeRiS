@@ -10,12 +10,10 @@ let web3, abi, contract;
  * @param {Object} abiFile          Object containing the abi
  */
 async function initBlockchain(portNumber, contractAddress, abiInterface) {
-    web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:"+portNumber));
+    web3 = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:"+portNumber));
 
     contract = new web3.eth.Contract(abiInterface);
     contract.options.address = contractAddress;
-
-    watchRiderDetails();
 
     return contract;
 }
@@ -70,50 +68,31 @@ function acceptJob(riderNumber, ethereumAddress){
  * Method called when requesting the current available rides
  * 
  * @param {String} ethereumAddress string with the etheruem address of the driver looking for rides
+ * 
  */
 function getCurrentRides(ethereumAddress){
-    return new Promise((resolve, reject) => {
-        contract.methods.getWaitingRiders().estimateGas({from: ethereumAddress}).then((gasAmount) => {
-            console.log(gasAmount)
-            contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
-                let results = [];
-                if (value.events.RiderDetails.length && value.events.RiderDetails.length > 1){
-                    for (let rd of value.events.RiderDetails){
-                        results.push(rd.returnValues);
-                    }
-                }
-                else {
-                    results = value.events.RiderDetails.returnValues;
-                }
-                resolve(results);
-                })
-            })
-    })
-    
-}
-
-/**
- * Function to init the listener to the riderdetails function. Wrapped so that it is only
- * initialized after contract is initialized
- */
-function watchRiderDetails(){
-    contract.events.RiderDetails().on('data', (error, result) => {
-        if (!error)
-        {
-            console.log('IN WATCH RIDER EMIT HERE IS RESULT')
-            console.log(result)
-        } 
-        else {
-            console.log(error);
-        }
+    contract.methods.getWaitingRiders().estimateGas({from: ethereumAddress}).then((gasAmount) => {
+        console.log(gasAmount)
+        contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
+            console.log('RIDES EMITTED')
+        });
     });
 }
 
+function resetUser(ethereumAddress){
+    contract.methods.userReset().estimateGas({from: ethereumAddress}).then((gasAmount) => {
+        console.log(gasAmount)
+        contract.methods.userReset().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
+            console.log('RESET THE USER')
+        });
+    });
+}
 
 export {
     initBlockchain,
     setDriver, 
     requestRide, 
     getCurrentRides, 
-    acceptJob
+    acceptJob,
+    resetUser
 }

@@ -45,9 +45,27 @@ class RiderPage extends React.Component {
     // submit functions for the request and cancel buttons
     onRequestSubmit(event) {
         event.preventDefault();
+        if (!this.props.DEV && !this.state.startLocation && !this.state.endLocation){
+            alert('Please pick a pickup and drop off location.')
+        }
+        let startLoc, endLoc, startAddr, endAddr;
+        if (this.props.DEV){
+            startLoc = {lat: 40.212334, lng: 100.34};
+            endLoc = {lat: 40.3421, lng: 100.3350};
+            startAddr ='1234 Hollywood Drive';
+            endAddr = '456 Elm Street';
+        }
+        else {
+            startLoc = this.state.startLocation;
+            endLoc = this.state.endLocation;
+            startAddr = this.state.startAddress;
+            endAddr = this.state.endAddress;
+        }
         this.props.onSubmit({
-            startLocation:  this.state.startLocation,
-            endLocation:    this.state.endLocation,
+            startLocation:  startLoc,
+            endLocation:    endLoc,
+            startAddress:   startAddr,
+            endAddress:     endAddr,
             requestType:    'request'
         });
     }
