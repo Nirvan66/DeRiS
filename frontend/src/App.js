@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import Web3 from 'web3'
 import './App.css'
 import LandingPage from './pages/landingPage.jsx'
 import RiderPage from './pages/riderPage.jsx'
@@ -10,7 +9,9 @@ import {
   initBlockchain,
   setDriver, 
   requestRide,
-  getCurrentRides
+  getCurrentRides,
+  resetUser,
+  acceptJob
 } from './js_modules/contractInterface'
 
 const NO_BLOCKCHAIN_DEV = false;
@@ -24,23 +25,15 @@ class App extends Component {
     if (NO_BLOCKCHAIN_DEV) { return; }
 
     const portNumber = '7545';
-    // This should be done on submission of the landing page
-    // const accounts = await web3.eth.getAccounts()
-    // this.setState({ account: accounts[0] })
-    const address = '0xa9346caCe9F4CF2B5A9a72cc0847838C0f708fE9';
-
-    const blockchainFunctions = initBlockchain(portNumber, address, derisInterface);
     
-    this.setState({ blockchainFunctions });
+    // the blockchain address
+    const address = '0x5c1eA93fcC525Aed21C0F1808030355051bc8C3B';
 
-    // const taskCount = await todoList.methods.taskCount().call()
-    // this.setState({ taskCount })
-    // for (var i = 1; i <= taskCount; i++) {
-    //   const task = await todoList.methods.tasks(i).call()
-    //   this.setState({
-    //     tasks: [...this.state.tasks, task]
-    //   })
-    // }
+    const blockchainFunctions = await initBlockchain(portNumber, address, derisInterface);
+    const getAvailableRidesListener = (cb) => blockchainFunctions.events.RiderDetails({}).on('data', (event) => cb(event));
+    const onRideAcceptedListener = (cb) => blockchainFunctions.events.RiderPicked({}).on('data', (event) => cb(event));
+
+    this.setState({ blockchainFunctions, onRideAcceptedListener, getAvailableRidesListener });
   }
 
   constructor(props) {
@@ -53,6 +46,9 @@ class App extends Component {
       driverStartLocation: '',
       driverJobRadius: '',
       driverJobInfo: '',
+      // address info for printing to page
+      pickupAddress: null,
+      dropOffAddress: null,
       // state info for page loading
       isLandingPage: true,
       isRiderPage: false,
@@ -60,7 +56,9 @@ class App extends Component {
       isRideProgressPage: false,
       // blockchain functions
       blockchainFunctions: null,
-      currentRides: null
+      // blockchain events
+      getAvailableRidesListener: null,
+      onRideAcceptedListener: null
     }
 
     //  bindings
@@ -74,13 +72,8 @@ class App extends Component {
   /////////////////////////////////////////////////////////////////////////
   onLandingPageSubmit(payload) {
     const isRiderPage = payload.role == 'rider';
-
-    const currentRides = isRiderPage ? null : getCurrentRides(payload.ethereumAddress);
-
-    if (!isRiderPage){
+    if (!isRiderPage && !NO_BLOCKCHAIN_DEV){
       setDriver(payload.ethereumAddress);
-      console.log('Logged in as driver. currentRides is')
-      console.log(currentRides)
     }
 
     this.setState({
@@ -88,14 +81,14 @@ class App extends Component {
       isLandingPage: false,
       isRiderPage,
       isDriverPage: !isRiderPage,
-      currentRides: currentRides
+      role: payload.role
     });
   }
 
   onRiderPageSubmit(payload){
     const isContinuing = payload.requestType == 'request';
-    console.log('Rider continuing ride', isContinuing);
-    if (isContinuing){
+
+    if (isContinuing && !NO_BLOCKCHAIN_DEV){
       const startLoc = {lat: payload.startLocation.lat().toString(), lng: payload.startLocation.lng().toString()};
       const endLoc = {lat: payload.endLocation.lat(), lng: payload.endLocation.lng()};
       requestRide(startLoc, endLoc, 10, this.state.ethereumAddress);
@@ -104,6 +97,8 @@ class App extends Component {
     this.setState({
       riderStartLocation: payload.startLocation,
       riderEndLocation: payload.endLocation,
+      pickupAddress: payload.startAddress,
+      dropOffAddress: payload.endAddress,
       isRiderPage: false,
       isRideProgressPage: isContinuing,
       isLandingPage: !isContinuing
@@ -112,14 +107,27 @@ class App extends Component {
 
   onDriverPageSubmit(payload) {
     const isCancel = payload.isCancel;
-    console.log('Driver canceling request: ' + isCancel);
+
+    if (isCancel){
+      resetUser(this.state.ethereumAddress);
+      this.setState({
+        isDriverPage: false,
+        isLandingPage: true,
+      })
+    }
+
+    // accept the job
+    acceptJob(parseInt(payload.jobInfo.riderNumber), this.state.ethereumAddress);
+
     this.setState({
       isDriverPage: false,
       isRideProgressPage: !isCancel,
       isLandingPage: isCancel,
       driverStartLocation: payload.center,
       driverJobRadius: payload.radius,
-      driverJobInfo: payload.jobInfo
+      driverJobInfo: payload.jobInfo,
+      pickupAddress: payload.jobInfo.startAddr,
+      dropOffAddress: payload.jobInfo.endAddr
     });
   }
 
@@ -127,23 +135,37 @@ class App extends Component {
   //              App render
   /////////////////////////////////////////////////////////////////////////
   render() {
+   
     return (
       <div>
         <LandingPage 
           onSubmit={this.onLandingPageSubmit}
           show={this.state.isLandingPage}
+          DEV={NO_BLOCKCHAIN_DEV}
         ></LandingPage>
         <RiderPage
           onSubmit={this.onRiderPageSubmit}
           show={this.state.isRiderPage}
+          DEV={NO_BLOCKCHAIN_DEV}
         ></RiderPage>
         <DriverPage
           onSubmit={this.onDriverPageSubmit}
           show={this.state.isDriverPage}
           currentRides={this.state.currentRides}
+          DEV={NO_BLOCKCHAIN_DEV}
+          getAvailableRidesListener={this.state.getAvailableRidesListener}
+          getAvailableRides={getCurrentRides}
+          ethereumAddress={this.state.ethereumAddress}
         ></DriverPage>
         <RideProgressPage
           show={this.state.isRideProgressPage}
+          role={this.state.role}
+          riderPickupAddress={this.state.pickupAddress}
+          riderDropOffAddress={this.state.dropOffAddress}
+          riderPickupLocation={this.state.riderStartLocation}
+          riderDropOffLocation={this.state.riderEndLocation}
+          DEV={NO_BLOCKCHAIN_DEV}
+          onRideAcceptedListener={this.state.onRideAcceptedListener}
         ></RideProgressPage>
       </div>
       
