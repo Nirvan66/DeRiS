@@ -5,7 +5,7 @@ web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
 abi = JSON.parse(fs.readFileSync('deris_sol_Deris.abi'));
 
 contract = new web3.eth.Contract(abi);
-contract.options.address = "0xDC825F515Dd94DFAcB9a4750E73F33D33E48337b";
+contract.options.address = "0xD165075b76229a4D85e2E8a5e5abB953Faf76198";
 
 contract.methods.driveRequest().estimateGas({from: '0xD01e67609fC9DC2bAf85c33F376E10189efAa788'}).then(function(gasAmount){
     console.log(gasAmount)

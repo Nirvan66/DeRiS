@@ -17,7 +17,7 @@ contract Deris{
     
     address [] public userList;
     
-    event RiderDetails(uint riderNumber, string pick, string drop);
+    event RiderDetails(uint riderNumber, string pick, string drop, uint escrow);
     event RiderPicked(uint riderNumber);
     event cashMoney(uint driverNumber, uint bills);
     event imHere(uint riderNumber, string location);
@@ -86,7 +86,7 @@ contract Deris{
         require(users[msg.sender].state==Status.DRIVER, "User needs to be in driver mode to pick rider");
         for (uint i=0; i<userList.length; i++) {
             if (users[userList[i]].currPairing == address(0) && users[userList[i]].state == Status.RIDER){
-                emit RiderDetails(users[userList[i]].number, users[userList[i]].pickup, users[userList[i]].dropoff);
+                emit RiderDetails(users[userList[i]].number, users[userList[i]].pickup, users[userList[i]].dropoff, users[userList[i]].escrow);
             }
         }
     }
@@ -112,7 +112,7 @@ contract Deris{
         //pay driver for the currently complete distance
         payable(users[msg.sender].currPairing).transfer(msg.value);
         users[msg.sender].paid = users[msg.sender].paid + msg.value;
-        emit cashMoney(users[msg.sender].number, msg.value);
+        emit cashMoney(users[users[msg.sender].currPairing].number, msg.value);
     }
     
     function informRider(string memory loc) public {

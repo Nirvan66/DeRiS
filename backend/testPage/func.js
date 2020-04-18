@@ -245,13 +245,14 @@ var abi = [
         "type": "function"
     }
 ]
+
 var ethAddr;
 var number;
 
 var web3 = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:7545"));
 
 var contract = new web3.eth.Contract(abi);
-contract.options.address = "0x72E181ae2a6Cb25562daf996615986186a6E980D";
+contract.options.address = "0x51A8eA835eC429bBFB46A8121Aa377c29081D90D";
 
 
 function myFunction() {
@@ -397,11 +398,12 @@ function infromRider(){
     })
 
 }
+
 function payDriver() {
     val = document.getElementById("cashAmt").value
     contract.methods.payDriver().estimateGas({from: ethAddr}).then(function(gasAmount){
         console.log(gasAmount)
-        contract.methods.payDriver().send({from: ethAddr, gas: gasAmount, value:web3.toWei(val, 'wei')}).then(function(value) {
+        contract.methods.payDriver().send({from: ethAddr, gas: gasAmount + web3.utils.toWei(val, 'wei'), value:web3.utils.toWei(val, 'wei')}).then(function(value) {
             console.log('payDriver')
             console.log(value)
             document.getElementById("sendMn").innerHTML = "Cash sent: " + val
@@ -415,5 +417,13 @@ function payDriver() {
 }
 
 function endRide() {
-	
+    contract.methods.userReset().estimateGas({from: ethAddr}).then(function(gasAmount){
+        console.log(gasAmount)
+        contract.methods.userReset().send({from: ethAddr, gas: gasAmount}).then(function(value) {
+            console.log('userReset')
+            console.log(value)
+            document.getElementById("tripStop").innerHTML = "Trip Stopped"
+            });
+    })
+    
 }
