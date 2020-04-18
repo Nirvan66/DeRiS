@@ -5,7 +5,7 @@
 
 <body>
 
-<h2>Add user</h2>
+<!-- <h2>Add user</h2>
 
 <label for="ethAddr">Etherium Address:</label>
 
@@ -14,9 +14,13 @@
 <button type="button" onclick=login()>Login</button>
 
 <br><label id='usrAddr'></label>
-<br><label id='usrNumber'></label>
+<br><label id='usrNumber'></label> -->
 
 <h2>Request</h2>
+<label for="ethAddr">Etherium Address:</label>
+
+<input type="text" id="ethAddr" name="ethAddr"><br><br>
+
 <label for="startLoc">Start Location:</label>
 
 <input type="text" id="startLoc" name="startLoc"><br><br>
@@ -29,6 +33,9 @@
 
 <button type="button" onclick=driveRequest()>Request Drive</button>
 
+<br><label id='usrAddr'></label>
+<br><label id='usrNumber'></label>
+<br><label id='ether'></label>
 <br><label id='riderOut'></label>
 
 <h2>Get riders</h2>
@@ -40,11 +47,30 @@
 
 <input type="text" id="riderNo" name="riderNo"><br><br>
 
-<button type="button" onclick=pickRider()>Pick Rider</button>
+<button type="button" onclick=pickRider()>Pick Rider</button><br><br>
+
+<label for="driveLoc">Driver Location:</label>
+
+<input type="text" id="driveLoc" name="driveLoc"><br><br>
+
+<button type="button" onclick=infromRider()>Here Bitch</button>
 
 <br><label id='picRider'></label>
 
 <h2>Trip Progress</h2>
+
+<input type="text" id="cashAmt" name="cashAmt"><br><br>
+
+<button type="button" onclick=payDriver()>Send money</button>
+
+<br><label id='select'></label>
+
+<br><label id='sendMn'></label>
+
+<br><label id='receiveMn'></label>
+
+<h2>Complete Trip</h2>
+<button type="button" onclick=endRide()>End Trip</button>
 
 </body>
 </html> 

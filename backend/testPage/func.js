@@ -44,6 +44,44 @@ var abi = [
         "type": "event"
     },
     {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "driverNumber",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "bills",
+                "type": "uint256"
+            }
+        ],
+        "name": "cashMoney",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "riderNumber",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "location",
+                "type": "string"
+            }
+        ],
+        "name": "imHere",
+        "type": "event"
+    },
+    {
         "inputs": [],
         "name": "driveRequest",
         "outputs": [],
@@ -66,6 +104,19 @@ var abi = [
     {
         "inputs": [],
         "name": "getWaitingRiders",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "loc",
+                "type": "string"
+            }
+        ],
+        "name": "informRider",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -195,23 +246,12 @@ var abi = [
     }
 ]
 var ethAddr;
+var number;
+
 var web3 = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:7545"));
 
 var contract = new web3.eth.Contract(abi);
-contract.options.address = "0xDC825F515Dd94DFAcB9a4750E73F33D33E48337b";
-
-contract.events.RiderDetails({}).on('data', function(event){
-		console.log("RiderDetails")
-	    console.log(event.returnValues);
-	    document.getElementById("riderList").innerHTML = document.getElementById("riderList").innerHTML 
-	    													+ JSON.stringify(event.returnValues);
-	})
-
-contract.events.RiderPicked({}).on('data', function(event){
-		console.log("RiderPicked")
-	    console.log(event.returnValues);
-	    document.getElementById("picRider").innerHTML = JSON.stringify(event.returnValues);
-	})
+contract.options.address = "0x72E181ae2a6Cb25562daf996615986186a6E980D";
 
 
 function myFunction() {
@@ -220,25 +260,44 @@ function myFunction() {
  // window.alert("haha")
 }
 
-function login() {
-	document.getElementById("usrAddr").innerHTML = "User Addr: " + document.getElementById("ethAddr").value
-	ethAddr = document.getElementById("ethAddr").value;
-	console.log("Got User Address: " + ethAddr);
-
-	contract.methods.getNumber().call({from: ethAddr}).then((f) => {
-	   console.log('getNumber')
-       console.log(f)
-       document.getElementById("usrNumber").innerHTML = "User Number: " + f
-	})
-}
-
 function rideRequest() {
+    document.getElementById("usrAddr").innerHTML = "User Addr: " + document.getElementById("ethAddr").value
+    ethAddr = document.getElementById("ethAddr").value;
+    console.log("Got User Address: " + ethAddr);
+
+    web3.eth.getBalance(ethAddr).then(function(value){
+        console.log(web3.utils.fromWei(value));
+        document.getElementById("ether").innerHTML = "Balance: " + web3.utils.fromWei(value);
+    });
+
+
 	document.getElementById("riderOut").innerHTML = "start: " + document.getElementById("startLoc").value 
 													+ " end: " + document.getElementById("endLoc").value;
 	startLoc = document.getElementById("startLoc").value;
 	endLoc = document.getElementById("endLoc").value;
 	console.log("start: " + document.getElementById("startLoc").value 
 				+ " end: " + document.getElementById("endLoc").value)
+
+    contract.events.RiderPicked({}).on('data', function(event){
+        console.log("RiderPicked")
+        console.log(event.returnValues);
+        document.getElementById("picRider").innerHTML = document.getElementById("picRider").innerHTML 
+                                                        + JSON.stringify(event.returnValues);
+        if (parseInt(event.returnValues.riderNumber)==number){
+            document.getElementById("select").innerHTML = "Surprise Motherfucker!!! You have been selected"
+        }
+    })
+
+    contract.events.imHere({}).on('data', function(event){
+        console.log("imHere")
+        console.log(event.returnValues);
+        if (parseInt(event.returnValues.riderNumber)==number){
+            document.getElementById("select").innerHTML = "Your ride is here."+  
+                                                            event.returnValues.location 
+                                                            +" Get your skechers on."
+        }
+    })
+
 
 	contract.methods.rideRequest(startLoc,endLoc,10).estimateGas({from: ethAddr}).then(function(gasAmount){
     console.log(gasAmount)
@@ -247,14 +306,43 @@ function rideRequest() {
         console.log(value)
         contract.methods.getNumber().call({from: ethAddr}).then((f) => {
 			   console.log('getNumber')
-		       console.log(f)
-		       document.getElementById("usrNumber").innerHTML = "User Number: " + f
+               number = parseInt(f)
+		       console.log(number)
+		       document.getElementById("usrNumber").innerHTML = "User Number: " + number
 			})
         })
     })
 }
 
 function driveRequest() {
+    document.getElementById("usrAddr").innerHTML = "User Addr: " + document.getElementById("ethAddr").value
+    ethAddr = document.getElementById("ethAddr").value;
+    console.log("Got User Address: " + ethAddr);
+
+    web3.eth.getBalance(ethAddr).then(function(value){
+        console.log(web3.utils.fromWei(value));
+        document.getElementById("ether").innerHTML = "Balance: " + web3.utils.fromWei(value);
+    });
+
+    contract.events.RiderDetails({}).on('data', function(event){
+        console.log("RiderDetails")
+        console.log(event.returnValues);
+        document.getElementById("riderList").innerHTML = document.getElementById("riderList").innerHTML 
+                                                            + JSON.stringify(event.returnValues);
+    })
+
+    contract.events.cashMoney({}).on('data', function(event){
+        console.log("cashMoney")
+        console.log(event.returnValues);
+        if (parseInt(event.returnValues.driverNumber)==number){
+            document.getElementById("receiveMn").innerHTML = "Popping Bands: " + event.returnValues.bills;
+        }
+        web3.eth.getBalance(ethAddr).then(function(value){
+            console.log(web3.utils.fromWei(value));
+            document.getElementById("ether").innerHTML = "Balance: " + web3.utils.fromWei(value);
+        });
+    })
+
 	contract.methods.driveRequest().estimateGas({from: ethAddr}).then(function(gasAmount){
 	    console.log(gasAmount)
 	    contract.methods.driveRequest().send({from: ethAddr, gas: gasAmount}).then(function(value) {
@@ -262,8 +350,9 @@ function driveRequest() {
 	        console.log(value)
             contract.methods.getNumber().call({from: ethAddr}).then((f) => {
                console.log('getNumber')
-               console.log(f)
-               document.getElementById("usrNumber").innerHTML = "User Number: " + f
+               number = parseInt(f)
+               console.log(number)
+               document.getElementById("usrNumber").innerHTML = "User Number: " + number
             })
 	   })
     })
@@ -290,14 +379,41 @@ function pickRider() {
 	    contract.methods.pickRider(riderNo).send({from: ethAddr, gas: gasAmount}).then(function(value) {
 	    	console.log('pickRider')
 	        console.log(value)
+            document.getElementById("picRider").innerHTML = "Rider selected: " + riderNo
 	        })
     })
 }
 
-function rideProgress() {
-	web3.fromWei(web3.eth.getBalance(ethAddr));
+function infromRider(){
+    driverLoc = document.getElementById("driveLoc").value;
+    console.log("Driver Location: " + driveLoc);
+    contract.methods.informRider(driverLoc).estimateGas({from: ethAddr}).then(function(gasAmount){
+        console.log(gasAmount)
+        contract.methods.informRider(driverLoc).send({from: ethAddr, gas: gasAmount}).then(function(value) {
+            console.log('informRider')
+            console.log(value)
+            document.getElementById("picRider").innerHTML = "Informed rider of location: " + driverLoc
+            })
+    })
+
+}
+function payDriver() {
+    val = document.getElementById("cashAmt").value
+    contract.methods.payDriver().estimateGas({from: ethAddr}).then(function(gasAmount){
+        console.log(gasAmount)
+        contract.methods.payDriver().send({from: ethAddr, gas: gasAmount, value:web3.toWei(val, 'wei')}).then(function(value) {
+            console.log('payDriver')
+            console.log(value)
+            document.getElementById("sendMn").innerHTML = "Cash sent: " + val
+            web3.eth.getBalance(ethAddr).then(function(value){
+                console.log(web3.utils.fromWei(value));
+                document.getElementById("ether").innerHTML = "Balance: " + web3.utils.fromWei(value);
+            });
+            });
+    })
+	
 }
 
 function endRide() {
-	web3.fromWei(web3.eth.getBalance(ethAddr));
+	
 }

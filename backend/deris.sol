@@ -19,6 +19,8 @@ contract Deris{
     
     event RiderDetails(uint riderNumber, string pick, string drop);
     event RiderPicked(uint riderNumber);
+    event cashMoney(uint driverNumber, uint bills);
+    event imHere(uint riderNumber, string location);
     
     constructor() public {
         
@@ -110,12 +112,16 @@ contract Deris{
         //pay driver for the currently complete distance
         payable(users[msg.sender].currPairing).transfer(msg.value);
         users[msg.sender].paid = users[msg.sender].paid + msg.value;
+        emit cashMoney(users[msg.sender].number, msg.value);
+    }
+    
+    function informRider(string memory loc) public {
+        emit imHere(users[users[msg.sender].currPairing].number, loc);
     }
     
     function userReset() public {
         require(users[msg.sender].isUser == true, "Need to be a user to complete ride");
         require(users[msg.sender].state == Status.RIDER || users[msg.sender].state == Status.DRIVER, "User needs to be in rider or driver mode to complete ride");
-        require(users[msg.sender].currPairing != address(0), "User needs to be paired to complete ride");
         
         users[msg.sender].state = Status.INACTIVE;
         users[msg.sender].currPairing = address(0);
