@@ -71,7 +71,7 @@ class LandingPage extends React.Component {
             submitFunction: this.onDriverSubmit, label: 'Driver'
         }
         return (
-            <div class="LandingPageInputsContainer">
+            <div className="LandingPageInputsContainer">
                 <TwoButtonTextSubmission 
                     inputLabel="Ethereum Address"
                     primary={primary}
@@ -86,14 +86,14 @@ class LandingPage extends React.Component {
     }
     render () {
         if (!this.props.show){
-            return (<div class="emtpy"></div>)
+            return (<div className="emtpy"></div>)
         }
         return (
-            <div class='LandingPage'>
+            <div className='LandingPage'>
                 <Jumbotron fluid>
-                    <h1 class='DerisHeader'>DERIS</h1>
+                    <h1 className='DerisHeader'>DERIS</h1>
                 </Jumbotron>
-                <div class='AddressInputContainer'>{this.renderAddressInput()}</div>
+                <div className='AddressInputContainer'>{this.renderAddressInput()}</div>
             </div>
             
         )

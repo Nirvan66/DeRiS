@@ -150,7 +150,8 @@ class DriverPage extends React.Component {
             startLoc: makeForDistanceCalc(ride.pick),
             endLoc: makeForDistanceCalc(ride.drop),
             startAddr: startAddr, 
-            endAddr: endAddr
+            endAddr: endAddr,
+            rate: parseInt(ride.escrow)
         };
 
         currentRides.push(validRide);
@@ -202,7 +203,8 @@ class DriverPage extends React.Component {
                     endAddr: '456 Elm Street',
                     startLoc: {lat: () => 40.1112, lng: () => 100.222},
                     endLoc: {lat: () => 40.1122, lng: () => 100.232},
-                    distance: 789
+                    distance: 789,
+                    rate: 69,
                 }];
         }
 
@@ -232,7 +234,7 @@ class DriverPage extends React.Component {
         for (let ride of closeRides){
             const butt = {
                 buttonLabel: 'Accept',
-                labels: [ride.startAddr, ride.endAddr, ride.distance],
+                labels: [ride.startAddr, ride.endAddr, ride.rate],
                 onClick: this.onJobAccept,
             }
             currentRidesButtons.push(butt);
@@ -248,7 +250,7 @@ class DriverPage extends React.Component {
     render() {
         // return if not supposed to show
         if (!this.props.show){
-            return (<div class="empty"></div>)
+            return (<div className="empty"></div>)
         }
         // circle info if ready for it
         const circle = this.createCircleObject();
@@ -266,8 +268,8 @@ class DriverPage extends React.Component {
         }
 
         return (
-            <div class="driverPageContainer">
-                <table class="textBoxTableContainer">
+            <div className="driverPageContainer">
+                <table className="textBoxTableContainer">
                     <tbody>
                     <tr>
                         <td>

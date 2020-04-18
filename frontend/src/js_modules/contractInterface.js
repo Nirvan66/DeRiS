@@ -1,6 +1,7 @@
 import Web3 from 'web3';
 
 let web3, abi, contract;
+const gasLimit = 3000000;
 
 /**
  * Init the blockchain for the app
@@ -25,10 +26,15 @@ async function initBlockchain(portNumber, contractAddress, abiInterface) {
  * 
  */
 function setDriver(ethereumAddress){
-    contract.methods.driveRequest().estimateGas({from: ethereumAddress}).then((gasAmount) => {
-        contract.methods.driveRequest().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
+    return new Promise ((resolve, reject) => {
+        contract.methods.driveRequest().estimateGas({from: ethereumAddress}).then((gasAmount) => {
+            console.log('GAS AMOUTN FROM SET DRIVER')
+            console.log(gasAmount)
+            contract.methods.driveRequest().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
+                resolve();
             })
         })
+    })
 }
 
 /**
@@ -71,14 +77,21 @@ function acceptJob(riderNumber, ethereumAddress){
  * 
  */
 function getCurrentRides(ethereumAddress){
+    console.log('ETHEREUM ADDRESS\n' + ethereumAddress)
     contract.methods.getWaitingRiders().estimateGas({from: ethereumAddress}).then((gasAmount) => {
+        console.log("GAS AMOUNT IN GET CURRENT RIDES: \n" + gasAmount)
         console.log(gasAmount)
         contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
             console.log('RIDES EMITTED')
-        });
-    });
+        }).catch(error => console.log("ERROR: CANNOT GET WAITING RIDERS\n" + error +'\nGAS AMOUNT'+gasAmount));
+    }).catch(error => console.log("ERROR: CANNOT CHECK GAS FOR WAITING RIDERS.\n" + error));
 }
 
+/**
+ * Resets a user so they are not 1. matched to anyone 2. locations are wiped
+ * 
+ * @param {String} ethereumAddress string with the ethereum address of the user to reset 
+ */
 function resetUser(ethereumAddress){
     contract.methods.userReset().estimateGas({from: ethereumAddress}).then((gasAmount) => {
         console.log(gasAmount)
@@ -88,11 +101,59 @@ function resetUser(ethereumAddress){
     });
 }
 
+/**
+ * 
+ * @param {Object} loc          object containing both .lat and .lng attributes. These attributes should be strings, not callables loc 
+ * @param {*} ethereumAddress   string with the ethereum address of driver
+ */
+function informRider(loc, ethereumAddress) {
+    console.log('LOCATION FROM INFORM RIDER\n'+loc);
+    console.log('EETHEREUM ADDRESS FROM INFORM RIDER\n'+ethereumAddress)
+    const locLatLng = [loc.lat, loc.lng].join(',');
+    contract.methods.informRider(locLatLng).estimateGas({from: ethereumAddress}).then( gasAmount => {
+        contract.methods.informRider(locLatLng).send({from: ethereumAddress, gas: gasAmount}).then( val => {
+            console.log('Sent inform rider message');
+        })
+    })
+}
+
+/**
+ * Get the User number in the blockchain list. Used for matching in the ride progress page 
+ * 
+ * @param {*} ethereumAddress   String ethereum address of the requester
+ * 
+ * @returns {Promise}           Promise that when resolves returns the number (an int) for the user
+ */
+function getMyRiderNumber(ethereumAddress){
+    return new Promise ((resolve, reject) => {
+        contract.methods.getNumber().call({from: ethereumAddress}).then(number => {
+            resolve(parseInt(number));
+        })
+    })
+}
+
+/**
+ * 
+ * @param {Int} amount              Integer amount to pay (in wei right now) 
+ * @param {String} ethereumAddress  String ethereum address of the sender
+ */
+function payDriver(amount, ethereumAddress){
+    amount = parseInt(amount).toString();
+    contract.methods.payDriver().estimateGas({from: ethereumAddress}).then( gasAmount => {
+        contract.methods.payDriver().send({from: ethereumAddress, gas: gasLimit, value: web3.utils.toWei(amount, 'wei')}).then( value => {
+            console.log('Paid driver')
+        }).catch('Error paying driver')
+    }).catch('calculating gas')
+}
+
 export {
     initBlockchain,
     setDriver, 
     requestRide, 
     getCurrentRides, 
     acceptJob,
-    resetUser
+    resetUser,
+    informRider,
+    getMyRiderNumber,
+    payDriver
 }

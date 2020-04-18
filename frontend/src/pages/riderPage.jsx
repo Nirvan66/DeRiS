@@ -3,7 +3,7 @@ import './styles/riderPage.css'
 import { TwoButtonTwoTextSubmission } from '../modules/textInputs.jsx'
 import { withScriptjs } from "react-google-maps";
 import  Map  from '../modules/googleMap.jsx'
-import { totalRouteDistance } from '../js_modules/googleMapUtils.js'
+import { totalRouteDistance, metersToMiles } from '../js_modules/googleMapUtils.js'
 /**
  * The module for the rider page
  * 
@@ -22,6 +22,8 @@ import { totalRouteDistance } from '../js_modules/googleMapUtils.js'
 
 const API_KEY = 'AIzaSyChykMQlbWKcQy-qixkVnXCrGVoy-vdlM4'
 const MapLoader = withScriptjs(Map);
+const weiPerMile = 100;
+
 class RiderPage extends React.Component {
     constructor (props) {
         super(props);
@@ -29,7 +31,9 @@ class RiderPage extends React.Component {
             startLocation: '',
             endLocation: '',
             startAddress: '',
-            endAddress: ''
+            endAddress: '',
+            tripRate: '',
+            directions: null,
         }
 
         this.onChange = this.onChange.bind(this);
@@ -48,25 +52,31 @@ class RiderPage extends React.Component {
         if (!this.props.DEV && !this.state.startLocation && !this.state.endLocation){
             alert('Please pick a pickup and drop off location.')
         }
-        let startLoc, endLoc, startAddr, endAddr;
+        let startLoc, endLoc, startAddr, endAddr, tripRate, directions;
         if (this.props.DEV){
             startLoc = {lat: 40.212334, lng: 100.34};
             endLoc = {lat: 40.3421, lng: 100.3350};
             startAddr ='1234 Hollywood Drive';
             endAddr = '456 Elm Street';
+            directions = ['nice'];
+            tripRate = 420;
         }
         else {
             startLoc = this.state.startLocation;
             endLoc = this.state.endLocation;
             startAddr = this.state.startAddress;
             endAddr = this.state.endAddress;
+            tripRate = Math.round(this.state.tripRate);
+            directions = this.state.directions;
         }
         this.props.onSubmit({
             startLocation:  startLoc,
             endLocation:    endLoc,
             startAddress:   startAddr,
             endAddress:     endAddr,
-            requestType:    'request'
+            requestType:    'request',
+            directions,
+            tripRate
         });
     }
     onCancelSubmit(event) {
@@ -91,19 +101,18 @@ class RiderPage extends React.Component {
                 endAddress: payload.address
             })
         }
-
     }
 
     onRouteMade(payload) {
-        const {directions} = payload;
-        console.log(directions)
-        const totalDistance = totalRouteDistance(directions.routes[0]);
-        console.log(totalDistance);
+        const directions = payload;
+        const totalDistance = metersToMiles(totalRouteDistance(directions.routes[0]));
+        const tripRate = totalDistance * weiPerMile;
+        this.setState({directions, tripRate})
     }
 
     render() {
         if (!this.props.show){
-            return (<div class="empty"></div>)
+            return (<div className="empty"></div>)
         }
         const inputFieldOne = {label: 'Pick-up Location', value: this.state.startAddress};
         const inputFieldTwo = {label: 'Drop-off Location', value: this.state.endAddress};
@@ -112,7 +121,7 @@ class RiderPage extends React.Component {
         const directions = this.state.startLocation && this.state.endLocation ? {startLoc: this.state.startLocation, endLoc: this.state.endLocation} : null;
 
         return (
-            <div class="RiderPage">
+            <div className="RiderPage">
             <TwoButtonTwoTextSubmission
                 inputFieldOne={inputFieldOne}
                 inputFieldTwo={inputFieldTwo}
@@ -127,6 +136,7 @@ class RiderPage extends React.Component {
                 onRouteMade={this.onRouteMade}
                 directions={directions}
             />
+            <div className="rateContainer"><h2>Rate: </h2>{this.state.tripRate}</div>
             </div>
         )
     }

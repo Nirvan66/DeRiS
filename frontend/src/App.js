@@ -11,7 +11,10 @@ import {
   requestRide,
   getCurrentRides,
   resetUser,
-  acceptJob
+  acceptJob,
+  informRider,
+  getMyRiderNumber,
+  payDriver
 } from './js_modules/contractInterface'
 
 const NO_BLOCKCHAIN_DEV = false;
@@ -27,13 +30,15 @@ class App extends Component {
     const portNumber = '7545';
     
     // the blockchain address
-    const address = '0x5c1eA93fcC525Aed21C0F1808030355051bc8C3B';
+    const address = '0xa58d4404b72C026410c2785fc7a2A656Dd049e1e';
 
     const blockchainFunctions = await initBlockchain(portNumber, address, derisInterface);
-    const getAvailableRidesListener = (cb) => blockchainFunctions.events.RiderDetails({}).on('data', (event) => cb(event));
-    const onRideAcceptedListener = (cb) => blockchainFunctions.events.RiderPicked({}).on('data', (event) => cb(event));
+    const getAvailableRidesListener = cb => blockchainFunctions.events.RiderDetails({}).on('data', (event) => cb(event));
+    const onRideAcceptedListener = cb => blockchainFunctions.events.RiderPicked({}).on('data', (event) => cb(event));
+    const onDriverArrivedListener = cb => blockchainFunctions.events.imHere({}).on('data', event => cb(event));
+    const onDriverPaidListener = cb => blockchainFunctions.events.cashMoney({}).on('data', event => cb(event));
 
-    this.setState({ blockchainFunctions, onRideAcceptedListener, getAvailableRidesListener });
+    this.setState({ blockchainFunctions, onRideAcceptedListener, getAvailableRidesListener, onDriverArrivedListener, onDriverPaidListener});
   }
 
   constructor(props) {
@@ -46,6 +51,8 @@ class App extends Component {
       driverStartLocation: '',
       driverJobRadius: '',
       driverJobInfo: '',
+      riderNumber: null,
+      tripRate: null,
       // address info for printing to page
       pickupAddress: null,
       dropOffAddress: null,
@@ -70,10 +77,11 @@ class App extends Component {
   /////////////////////////////////////////////////////////////////////////
   //              Submissions
   /////////////////////////////////////////////////////////////////////////
-  onLandingPageSubmit(payload) {
+  async onLandingPageSubmit(payload) {
     const isRiderPage = payload.role == 'rider';
     if (!isRiderPage && !NO_BLOCKCHAIN_DEV){
-      setDriver(payload.ethereumAddress);
+      console.log('Setting driver')
+      await setDriver(payload.ethereumAddress);
     }
 
     this.setState({
@@ -88,10 +96,13 @@ class App extends Component {
   onRiderPageSubmit(payload){
     const isContinuing = payload.requestType == 'request';
 
+    let riderNumber = null;
     if (isContinuing && !NO_BLOCKCHAIN_DEV){
       const startLoc = {lat: payload.startLocation.lat().toString(), lng: payload.startLocation.lng().toString()};
       const endLoc = {lat: payload.endLocation.lat(), lng: payload.endLocation.lng()};
-      requestRide(startLoc, endLoc, 10, this.state.ethereumAddress);
+      const tripRate =  Math.round(payload.tripRate);
+      requestRide(startLoc, endLoc, tripRate, this.state.ethereumAddress);
+      getMyRiderNumber(this.state.ethereumAddress).then(number => riderNumber = number);
     }
 
     this.setState({
@@ -101,7 +112,10 @@ class App extends Component {
       dropOffAddress: payload.endAddress,
       isRiderPage: false,
       isRideProgressPage: isContinuing,
-      isLandingPage: !isContinuing
+      isLandingPage: !isContinuing, 
+      riderNumber: riderNumber,
+      tripRate: Math.round(payload.tripRate),
+      directions: payload.directions,
     });
   }
 
@@ -119,6 +133,9 @@ class App extends Component {
     // accept the job
     acceptJob(parseInt(payload.jobInfo.riderNumber), this.state.ethereumAddress);
 
+    console.log('PAYLOAD FRM ON DRIVER PAGE SUBMIT')
+    console.log(payload)
+
     this.setState({
       isDriverPage: false,
       isRideProgressPage: !isCancel,
@@ -127,7 +144,8 @@ class App extends Component {
       driverJobRadius: payload.radius,
       driverJobInfo: payload.jobInfo,
       pickupAddress: payload.jobInfo.startAddr,
-      dropOffAddress: payload.jobInfo.endAddr
+      dropOffAddress: payload.jobInfo.endAddr,
+      tripRate: payload.jobInfo.rate,
     });
   }
 
@@ -166,6 +184,14 @@ class App extends Component {
           riderDropOffLocation={this.state.riderEndLocation}
           DEV={NO_BLOCKCHAIN_DEV}
           onRideAcceptedListener={this.state.onRideAcceptedListener}
+          onDriverArrivedListener={this.state.onDriverArrivedListener}
+          riderNumber={this.state.riderNumber}
+          informRider={informRider}
+          ethereumAddress={this.state.ethereumAddress}
+          tripRate={this.state.tripRate}
+          directions={this.state.directions}
+          payDriver={payDriver}
+          onDriverPaid={this.state.onDriverPaidListener}
         ></RideProgressPage>
       </div>
       

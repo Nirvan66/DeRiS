@@ -124,6 +124,9 @@ addRoute(startLoc, endLoc) {
       (result, status) => {
       if (status === google.maps.DirectionsStatus.OK) {
         console.log('rendering directions')
+        if (this.props.onRouteMade){
+          this.props.onRouteMade(result)
+        }
           this.setState({
             directionsRendered: true,
             directions: result

@@ -24,6 +24,12 @@ export const derisInterface = [
 				"internalType": "string",
 				"name": "drop",
 				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "escrow",
+				"type": "uint256"
 			}
 		],
 		"name": "RiderDetails",
@@ -40,6 +46,44 @@ export const derisInterface = [
 			}
 		],
 		"name": "RiderPicked",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "driverNumber",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "bills",
+				"type": "uint256"
+			}
+		],
+		"name": "cashMoney",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "riderNumber",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "location",
+				"type": "string"
+			}
+		],
+		"name": "imHere",
 		"type": "event"
 	},
 	{
@@ -65,6 +109,19 @@ export const derisInterface = [
 	{
 		"inputs": [],
 		"name": "getWaitingRiders",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "loc",
+				"type": "string"
+			}
+		],
+		"name": "informRider",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"

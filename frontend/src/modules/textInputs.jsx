@@ -17,7 +17,7 @@ import { InvalidTextInputError } from './errors'
  */
 function SingleTextBox (props) {
     return (
-        <div class="SingleTextBoxContainer">
+        <div className="SingleTextBoxContainer">
             <Form> 
                 <Form.Group >
                     <Form.Label>{props.label}</Form.Label>
@@ -55,9 +55,9 @@ function TwoButtonTextSubmission (props){
                     show={!props.validInput}
                     errorMessage={props.invalidInputMessage}
              ></InvalidTextInputError>
-            <div class="TwoButtonTextSubmissionButtonContainer">
-                <Button class="PrimaryButton" type="submit" size="lg" block>{props.primary.label}</Button>
-                <Button class="SecondaryButton" size="lg" onClick={props.secondary.submitFunction} block>{props.secondary.label}</Button>
+            <div className="TwoButtonTextSubmissionButtonContainer">
+                <Button className="PrimaryButton" type="submit" size="lg" block>{props.primary.label}</Button>
+                <Button className="SecondaryButton" size="lg" onClick={props.secondary.submitFunction} block>{props.secondary.label}</Button>
             </div>
         </Form>
     );
@@ -80,7 +80,7 @@ function TwoButtonTextSubmission (props){
  */
 function TwoButtonTwoTextSubmission (props){
     return (
-        <div class="TwoButtonTwoTextSubmissionContainer">
+        <div className="TwoButtonTwoTextSubmissionContainer">
             <Form onSubmit={props.primaryButton.submitFunction}> 
                 <Form.Group>
                     <Form.Label>{props.inputFieldOne.label}</Form.Label>
@@ -90,9 +90,9 @@ function TwoButtonTwoTextSubmission (props){
                     <Form.Label>{props.inputFieldTwo.label}</Form.Label>
                     <Form.Control name={props.inputFieldTwo.name} onChange={props.onChange} value={props.inputFieldTwo.value}/>
                 </Form.Group>
-                <div class="TwoButtonTwoTextSubmissionButtonContainer">
-                    <Button class="PrimaryButton" type="submit" size="lg">{props.primaryButton.label}</Button>
-                    <Button class="SecondaryButton" size="lg" onClick={props.secondaryButton.submitFunction} >{props.secondaryButton.label}</Button>
+                <div className="TwoButtonTwoTextSubmissionButtonContainer">
+                    <Button className="PrimaryButton" type="submit" size="lg">{props.primaryButton.label}</Button>
+                    <Button className="SecondaryButton" size="lg" onClick={props.secondaryButton.submitFunction} >{props.secondaryButton.label}</Button>
                 </div>
             </Form>
         </div>

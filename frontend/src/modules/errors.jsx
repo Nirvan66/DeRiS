@@ -17,13 +17,13 @@ import './styles/errors.css'
     render() {
         console.log('Show is ' + this.props.show)
         if (!this.props.show){
-            return (<div class="empy"></div>)
+            return (<div className="empty"></div>)
         }
         return (
             <div
-                class="invalidTextInputErrorContainer"
+                className="invalidTextInputErrorContainer"
             >
-                 <div class="InvalidTextInputError"
+                 <div className="InvalidTextInputError"
                  >
                      <p>{this.props.errorMessage}</p>
                  </div>

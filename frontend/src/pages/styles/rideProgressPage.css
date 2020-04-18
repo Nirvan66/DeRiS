@@ -28,3 +28,19 @@
     margin-right: auto;
     width: 50%;
 }
+
+.RideProgressPage .rideProgressPageCenter {
+    text-align: center;
+}
+
+.RideProgressPage .rideProgressPageCenter button {
+    color: white;
+    background-color: goldenrod;
+    border-color: goldenrod;
+}
+
+.RideProgressPage .rideProgressPageCenter .driverArrived  button {
+    color: black;
+    background-color: red;
+    border-color: red;
+}
