@@ -25,6 +25,12 @@ var abi = [
                 "internalType": "string",
                 "name": "drop",
                 "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "escrow",
+                "type": "uint256"
             }
         ],
         "name": "RiderDetails",
@@ -248,11 +254,14 @@ var abi = [
 
 var ethAddr;
 var number;
+var tripCost = 400
+var arrivalTime = 10
+var timer;
 
 var web3 = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:7545"));
 
 var contract = new web3.eth.Contract(abi);
-contract.options.address = "0x51A8eA835eC429bBFB46A8121Aa377c29081D90D";
+contract.options.address = "0x8000F4E34EC466b2A13D6b38D9f4F794691285Fd";
 
 
 function myFunction() {
@@ -262,8 +271,8 @@ function myFunction() {
 }
 
 function rideRequest() {
-    document.getElementById("usrAddr").innerHTML = "User Addr: " + document.getElementById("ethAddr").value
-    ethAddr = document.getElementById("ethAddr").value;
+    document.getElementById("usrAddrR").innerHTML = "User Addr: " + document.getElementById("ethAddrR").value
+    ethAddr = document.getElementById("ethAddrR").value;
     console.log("Got User Address: " + ethAddr);
 
     web3.eth.getBalance(ethAddr).then(function(value){
@@ -272,8 +281,11 @@ function rideRequest() {
     });
 
 
-	document.getElementById("riderOut").innerHTML = "start: " + document.getElementById("startLoc").value 
-													+ " end: " + document.getElementById("endLoc").value;
+	document.getElementById("riderOut").innerHTML = "You better be at: "  
+                                                    + document.getElementById("startLoc").value 
+                                                    + " to take your lazy ass to: "
+													+ document.getElementById("endLoc").value;
+    document.getElementById("select").innerHTML = "Waiting for a sorry soul to pick your bitch ass"
 	startLoc = document.getElementById("startLoc").value;
 	endLoc = document.getElementById("endLoc").value;
 	console.log("start: " + document.getElementById("startLoc").value 
@@ -282,10 +294,8 @@ function rideRequest() {
     contract.events.RiderPicked({}).on('data', function(event){
         console.log("RiderPicked")
         console.log(event.returnValues);
-        document.getElementById("picRider").innerHTML = document.getElementById("picRider").innerHTML 
-                                                        + JSON.stringify(event.returnValues);
         if (parseInt(event.returnValues.riderNumber)==number){
-            document.getElementById("select").innerHTML = "Surprise Motherfucker!!! You have been selected"
+            document.getElementById("select").innerHTML = "Surprise Motherfucker!! Your rider is on the way: "
         }
     })
 
@@ -293,31 +303,31 @@ function rideRequest() {
         console.log("imHere")
         console.log(event.returnValues);
         if (parseInt(event.returnValues.riderNumber)==number){
-            document.getElementById("select").innerHTML = "Your ride is here."+  
+            document.getElementById("select").innerHTML = "Your ride is here: "+  
                                                             event.returnValues.location 
                                                             +" Get your skechers on."
         }
     })
 
 
-	contract.methods.rideRequest(startLoc,endLoc,10).estimateGas({from: ethAddr}).then(function(gasAmount){
+	contract.methods.rideRequest(startLoc,endLoc,web3.utils.toWei('400', 'wei')).estimateGas({from: ethAddr}).then(function(gasAmount){
     console.log(gasAmount)
-    contract.methods.rideRequest(startLoc,endLoc,10).send({from: ethAddr, gas: gasAmount}).then(function(value) {
+    contract.methods.rideRequest(startLoc,endLoc,web3.utils.toWei('400', 'wei')).send({from: ethAddr, gas: gasAmount}).then(function(value) {
     	console.log('rideRequest')
         console.log(value)
         contract.methods.getNumber().call({from: ethAddr}).then((f) => {
 			   console.log('getNumber')
                number = parseInt(f)
 		       console.log(number)
-		       document.getElementById("usrNumber").innerHTML = "User Number: " + number
+		       document.getElementById("usrNumberR").innerHTML = "User Number: " + number
 			})
         })
     })
 }
 
 function driveRequest() {
-    document.getElementById("usrAddr").innerHTML = "User Addr: " + document.getElementById("ethAddr").value
-    ethAddr = document.getElementById("ethAddr").value;
+    document.getElementById("usrAddrD").innerHTML = "User Addr: " + document.getElementById("ethAddrD").value
+    ethAddr = document.getElementById("ethAddrD").value;
     console.log("Got User Address: " + ethAddr);
 
     web3.eth.getBalance(ethAddr).then(function(value){
@@ -353,7 +363,7 @@ function driveRequest() {
                console.log('getNumber')
                number = parseInt(f)
                console.log(number)
-               document.getElementById("usrNumber").innerHTML = "User Number: " + number
+               document.getElementById("usrNumberD").innerHTML = "User Number: " + number
             })
 	   })
     })
@@ -374,13 +384,29 @@ function getRiders() {
 function pickRider() {
 	riderNo = document.getElementById("riderNo").value;
 	console.log("picked rider: " + document.getElementById("riderNo").value)
+    function timeRemaining(){
+        width = parseInt(document.getElementById("timeRemainingB").style.width)
+        if(width==0){
+            clearTimeout(timer)
+            document.getElementById("timeRemainingB").style.width = '100%'
+        }else{
+            width = width - 100/arrivalTime;
+            console.log(width)
+            document.getElementById("timeRemainingB").style.width = width.toString() + '%'
+        }
+    }
 
 	contract.methods.pickRider(riderNo).estimateGas({from: ethAddr}).then(function(gasAmount){
 	    console.log(gasAmount)
 	    contract.methods.pickRider(riderNo).send({from: ethAddr, gas: gasAmount}).then(function(value) {
 	    	console.log('pickRider')
 	        console.log(value)
-            document.getElementById("picRider").innerHTML = "Rider selected: " + riderNo
+            document.getElementById("picRider").innerHTML = "Rider selected: " 
+                                                            + riderNo 
+                                                            + " Get there in: "
+                                                            + arrivalTime
+            timer = setInterval(timeRemaining, 1000);
+            document.getElementById("timeRemaining").style.visibility = 'visible';
 	        })
     })
 }
@@ -403,7 +429,8 @@ function payDriver() {
     val = document.getElementById("cashAmt").value
     contract.methods.payDriver().estimateGas({from: ethAddr}).then(function(gasAmount){
         console.log(gasAmount)
-        contract.methods.payDriver().send({from: ethAddr, gas: gasAmount + web3.utils.toWei(val, 'wei'), value:web3.utils.toWei(val, 'wei')}).then(function(value) {
+        console.log(gasAmount + parseInt(web3.utils.toWei(val, 'wei')))
+        contract.methods.payDriver().send({from: ethAddr, gas: 3000000, value:web3.utils.toWei(val, 'wei')}).then(function(value) {
             console.log('payDriver')
             console.log(value)
             document.getElementById("sendMn").innerHTML = "Cash sent: " + val
@@ -422,7 +449,7 @@ function endRide() {
         contract.methods.userReset().send({from: ethAddr, gas: gasAmount}).then(function(value) {
             console.log('userReset')
             console.log(value)
-            document.getElementById("tripStop").innerHTML = "Trip Stopped"
+            document.getElementById("tripStop").innerHTML = "Byeeeeeee!!!"
             });
     })
     

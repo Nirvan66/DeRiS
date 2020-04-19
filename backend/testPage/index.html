@@ -3,6 +3,18 @@
 <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.37/dist/web3.min.js"></script>
 <script src="func.js"></script>
 
+<head>
+<style>
+#myProgress {
+  width: 100%;background-color: grey;
+}
+
+#myBar {
+  width: 1%;height: 30px;background-color: green;
+}
+</style>
+</head>
+
 <body>
 
 <!-- <h2>Add user</h2>
@@ -16,62 +28,120 @@
 <br><label id='usrAddr'></label>
 <br><label id='usrNumber'></label> -->
 
-<h2>Request</h2>
-<label for="ethAddr">Etherium Address:</label>
+<div id="choose">
+    <button type="button" onclick=ride() style="height:70px;width:100%;">Ride</button>
+    <button type="button" onclick=drive() style="height:70px;width:100%;">Drive</button>
+</div>
 
-<input type="text" id="ethAddr" name="ethAddr"><br><br>
+<div id="driverStuff" style="visibility:hidden">
+    <h1>Driver Stuff</h1>
+    <h2>Request</h2>
+        <label for="ethAddrD">Etherium Address:</label>
+        <input type="text" id="ethAddrD" name="ethAddrD"><br><br>
 
-<label for="startLoc">Start Location:</label>
+        <button type="button" onclick=driveRequest()>Request Drive</button>
 
-<input type="text" id="startLoc" name="startLoc"><br><br>
+        <br><label id='usrAddrD'></label>
+        <br><label id='usrNumberD'></label>
+        <br><label id='ether'></label>
 
-<label for="endLoc">End Location:</label>
+    <h2>Get riders</h2>
+        <button type="button" onclick=getRiders()>Get riders</button>
+        <br><label id='riderList'></label>
 
-<input type="text" id="endLoc" name="endLoc"><br><br>
+    <h2>Pick Rider</h2>
+        <br><label id='picRider'></label>
+        <label for="riderNo">Rider Number:</label>
 
-<button type="button" onclick=rideRequest()>Request Ride</button>
+        <input type="text" id="riderNo" name="riderNo"><br><br>
 
-<button type="button" onclick=driveRequest()>Request Drive</button>
+        <button type="button" onclick=pickRider()>Pick Rider</button><br><br>
 
-<br><label id='usrAddr'></label>
-<br><label id='usrNumber'></label>
-<br><label id='ether'></label>
-<br><label id='riderOut'></label>
+        <label>Time remaining to reach rider:</label>
+        <div id="timeRemaining" style="width: 100%;background-color: grey;">
+          <div id="timeRemainingB" style="width: 100%;height: 30px;background-color: green;">
+          </div>
+        </div><br><br>
 
-<h2>Get riders</h2>
-<button type="button" onclick=getRiders()>Get riders</button>
-<br><label id='riderList'></label>
+        <label for="driveLoc">Driver Location:</label>
 
-<h2>Pick Rider</h2>
-<label for="riderNo">Rider Number:</label>
+        <input type="text" id="driveLoc" name="driveLoc"><br><br>
 
-<input type="text" id="riderNo" name="riderNo"><br><br>
+        <button type="button" onclick=infromRider()>Here Bitch</button>
 
-<button type="button" onclick=pickRider()>Pick Rider</button><br><br>
+    <h2>Trip Progress</h2>
+        <div id="progressD" style="width: 100%;background-color: grey;">
+          <div id="progressDB" style="width: 1%;height: 30px;background-color: green;">
+          </div>
+        </div><br><br>
+        <br><label id='receiveMn'></label>
 
-<label for="driveLoc">Driver Location:</label>
+    <h2>Complete Trip</h2>
+        <button type="button" onclick=endRide()>End Trip</button>
+        <br><label id='tripStop'></label>
+</div>
 
-<input type="text" id="driveLoc" name="driveLoc"><br><br>
+<div id="riderStuff" style="visibility:hidden">
+    <h1>Rider Stuff</h1>
+        <label for="ethAddrR">Etherium Address:</label>
 
-<button type="button" onclick=infromRider()>Here Bitch</button>
+        <input type="text" id="ethAddrR" name="ethAddrR"><br><br>
 
-<br><label id='picRider'></label>
+        <label for="startLoc">Start Location:</label>
 
-<h2>Trip Progress</h2>
+        <input type="text" id="startLoc" name="startLoc"><br><br>
 
-<input type="text" id="cashAmt" name="cashAmt"><br><br>
+        <label for="endLoc">End Location:</label>
 
-<button type="button" onclick=payDriver()>Send money</button>
+        <input type="text" id="endLoc" name="endLoc"><br><br>
 
-<br><label id='select'></label>
+        <button type="button" onclick=rideRequest()>Request Ride</button>
 
-<br><label id='sendMn'></label>
+        <br><label id='usrAddrR'></label>
+        <br><label id='usrNumberR'></label>
+        <br><label id='ether'></label>
+        <br><label id='riderOut'></label>
 
-<br><label id='receiveMn'></label>
 
-<h2>Complete Trip</h2>
-<button type="button" onclick=endRide()>End Trip</button>
-<br><label id='tripStop'></label>
+    <h2>Driver status</h2>
+        <br><label id='select'></label>
+        <div id="dstatusR" style="width: 100%;background-color: grey;">
+          <div id="dstatusRB" style="width: 1%;height: 30px;background-color: green;">
+          </div>
+        </div><br><br>
+
+    <h2>Trip Progress</h2>
+        <div id="progressR" style="width: 100%;background-color: grey;">
+          <div id="progressRB" style="width: 1%;height: 30px;background-color: green;">
+          </div>
+        </div><br><br>
+
+        <input type="text" id="cashAmt" name="cashAmt"><br><br>
+
+        <button type="button" onclick=payDriver()>Send money</button>
+
+        <br><label id='sendMn'></label>
+
+    <h2>Complete Trip</h2>
+        <button type="button" onclick=endRide()>End Trip</button>
+        <br><label id='tripStop'></label>
+</div>
+
+ <script> 
+            var dsDiv = document.getElementById('driverStuff'); 
+            var rsDiv = document.getElementById('riderStuff'); 
+            var chs = document.getElementById('choose'); 
+            function ride() { 
+                dsDiv.parentNode.removeChild(dsDiv);  
+                chs.parentNode.removeChild(chs);  
+                rsDiv.style.visibility = 'visible';
+            } 
+            function drive(){
+                rsDiv.parentNode.removeChild(rsDiv);  
+                chs.parentNode.removeChild(chs);  
+                dsDiv.style.visibility = 'visible';
+            }
+</script> 
 
 </body>
 </html> 
