@@ -32,6 +32,7 @@ contract Deris{
     event RiderPicked(uint riderNumber, uint arrivalTime);
     event cashMoney(uint driverNumber, uint bills);
     event imHere(uint riderNumber, int256[] location);
+    event undone(uint usrNumber, uint cancelFee);
     
     constructor() public {
         
@@ -144,7 +145,8 @@ contract Deris{
         
         emit imHere(users[users[msg.sender].currPairing].number, loc);
         //[40005140, -105256061], [40005157, -105252370], 10
-        //[40005140, -105256061]
+        // 40.005140,-105.256061
+        // 40.005157,-105.252370
     }
     
     function payDriver() public payable{
@@ -160,7 +162,10 @@ contract Deris{
         users[msg.sender].paid = users[msg.sender].paid + msg.value;
         emit cashMoney(users[users[msg.sender].currPairing].number, msg.value);
         if (users[msg.sender].paid == users[msg.sender].escrow){
+            emit undone(users[msg.sender].number, 0);
+            emit undone(users[users[msg.sender].currPairing].number, 0);
             reset(msg.sender);
+            reset(users[msg.sender].currPairing);
         }
     }
     
@@ -177,6 +182,7 @@ contract Deris{
     }
     
     function userReset() public payable{
+        //885999999991808
         require(users[msg.sender].isUser == true, "Need to be a user to complete ride");
         require(users[msg.sender].state != Status.INACTIVE, "Need to be an active user to complete ride");
         if(users[msg.sender].inProgress == true){
@@ -187,17 +193,21 @@ contract Deris{
             if(users[msg.sender].state == Status.RIDER){
                 if(users[msg.sender].driverArrived==false && now>users[msg.sender].arrivalTime){
                     payable(msg.sender).transfer(msg.value);
+                    emit undone(users[msg.sender].number, 0);
                     reset(msg.sender);
                 }else{
                     payable(users[msg.sender].currPairing).transfer(msg.value);
+                    emit undone(users[msg.sender].number, msg.value);
                     reset(msg.sender);
                 }
             }else{
                 if(users[msg.sender].driverArrived==true && now>users[msg.sender].arrivalTime){
                     payable(msg.sender).transfer(msg.value);
+                    emit undone(users[msg.sender].number, 0);
                     reset(msg.sender);
                 }else{
                     payable(users[msg.sender].currPairing).transfer(msg.value);
+                    emit undone(users[msg.sender].number, msg.value);
                     reset(msg.sender);
                 }
                 

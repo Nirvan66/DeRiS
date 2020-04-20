@@ -15,16 +15,40 @@ var abi = [
                 "type": "uint256"
             },
             {
+                "components": [
+                    {
+                        "internalType": "int256",
+                        "name": "lat",
+                        "type": "int256"
+                    },
+                    {
+                        "internalType": "int256",
+                        "name": "long",
+                        "type": "int256"
+                    }
+                ],
                 "indexed": false,
-                "internalType": "string",
+                "internalType": "struct Deris.coordinates",
                 "name": "pick",
-                "type": "string"
+                "type": "tuple"
             },
             {
+                "components": [
+                    {
+                        "internalType": "int256",
+                        "name": "lat",
+                        "type": "int256"
+                    },
+                    {
+                        "internalType": "int256",
+                        "name": "long",
+                        "type": "int256"
+                    }
+                ],
                 "indexed": false,
-                "internalType": "string",
+                "internalType": "struct Deris.coordinates",
                 "name": "drop",
-                "type": "string"
+                "type": "tuple"
             },
             {
                 "indexed": false,
@@ -43,6 +67,12 @@ var abi = [
                 "indexed": false,
                 "internalType": "uint256",
                 "name": "riderNumber",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "arrivalTime",
                 "type": "uint256"
             }
         ],
@@ -79,12 +109,31 @@ var abi = [
             },
             {
                 "indexed": false,
-                "internalType": "string",
+                "internalType": "int256[]",
                 "name": "location",
-                "type": "string"
+                "type": "int256[]"
             }
         ],
         "name": "imHere",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "usrNumber",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "cancelFee",
+                "type": "uint256"
+            }
+        ],
+        "name": "undone",
         "type": "event"
     },
     {
@@ -117,9 +166,9 @@ var abi = [
     {
         "inputs": [
             {
-                "internalType": "string",
+                "internalType": "int256[]",
                 "name": "loc",
-                "type": "string"
+                "type": "int256[]"
             }
         ],
         "name": "informRider",
@@ -140,6 +189,11 @@ var abi = [
                 "internalType": "uint256",
                 "name": "riderNumber",
                 "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "arrivalTime",
+                "type": "uint256"
             }
         ],
         "name": "pickRider",
@@ -150,14 +204,14 @@ var abi = [
     {
         "inputs": [
             {
-                "internalType": "string",
+                "internalType": "int256[]",
                 "name": "pick",
-                "type": "string"
+                "type": "int256[]"
             },
             {
-                "internalType": "string",
+                "internalType": "int256[]",
                 "name": "drop",
-                "type": "string"
+                "type": "int256[]"
             },
             {
                 "internalType": "uint256",
@@ -193,7 +247,7 @@ var abi = [
         "inputs": [],
         "name": "userReset",
         "outputs": [],
-        "stateMutability": "nonpayable",
+        "stateMutability": "payable",
         "type": "function"
     },
     {
@@ -227,14 +281,53 @@ var abi = [
                 "type": "address"
             },
             {
-                "internalType": "string",
+                "components": [
+                    {
+                        "internalType": "int256",
+                        "name": "lat",
+                        "type": "int256"
+                    },
+                    {
+                        "internalType": "int256",
+                        "name": "long",
+                        "type": "int256"
+                    }
+                ],
+                "internalType": "struct Deris.coordinates",
                 "name": "pickup",
-                "type": "string"
+                "type": "tuple"
             },
             {
-                "internalType": "string",
+                "components": [
+                    {
+                        "internalType": "int256",
+                        "name": "lat",
+                        "type": "int256"
+                    },
+                    {
+                        "internalType": "int256",
+                        "name": "long",
+                        "type": "int256"
+                    }
+                ],
+                "internalType": "struct Deris.coordinates",
                 "name": "dropoff",
-                "type": "string"
+                "type": "tuple"
+            },
+            {
+                "internalType": "uint256",
+                "name": "arrivalTime",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bool",
+                "name": "driverArrived",
+                "type": "bool"
+            },
+            {
+                "internalType": "bool",
+                "name": "inProgress",
+                "type": "bool"
             },
             {
                 "internalType": "uint256",
@@ -255,14 +348,14 @@ var abi = [
 var ethAddr;
 var number;
 var tripCost = 400
-var arrivalTime = 10
+var arrivalTime;
 var timer;
 var gaslimit = 3000000;
 
 var web3 = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:7545"));
 
 var contract = new web3.eth.Contract(abi);
-contract.options.address = "0x8000F4E34EC466b2A13D6b38D9f4F794691285Fd";
+contract.options.address = "0xe3Fe7Cd98C879622c8bc707d10b58b303CB3445F";
 
 
 function myFunction() {
@@ -277,27 +370,32 @@ function rideRequest() {
     console.log("Got User Address: " + ethAddr);
 
     web3.eth.getBalance(ethAddr).then(function(value){
-        console.log(web3.utils.fromWei(value));
-        document.getElementById("ether").innerHTML = "Balance: " + web3.utils.fromWei(value);
+        console.log(value);
+        document.getElementById("ether").innerHTML =   value;
     });
 
+    function dstatusR(){
+        width = parseInt(document.getElementById("dstatusRB").style.width)
+        if(width==0){
+            clearTimeout(timer)
+            document.getElementById("dstatusRB").style.width = '100%'
+            document.getElementById("select").innerHTML = "Drivers time is up. End trip if you want"
 
-	document.getElementById("riderOut").innerHTML = "You better be at: "  
-                                                    + document.getElementById("startLoc").value 
-                                                    + " to take your lazy ass to: "
-													+ document.getElementById("endLoc").value;
-
-    document.getElementById("select").innerHTML = "Waiting for a sorry soul to pick your bitch ass"
-	startLoc = document.getElementById("startLoc").value;
-	endLoc = document.getElementById("endLoc").value;
-	console.log("start: " + document.getElementById("startLoc").value 
-				+ " end: " + document.getElementById("endLoc").value)
+        }else{
+            width = width - 100/arrivalTime;
+            console.log(width)
+            document.getElementById("dstatusRB").style.width = width.toString() + '%'
+        }
+    }
 
     contract.events.RiderPicked({}).on('data', function(event){
         console.log("RiderPicked")
         console.log(event.returnValues);
         if (parseInt(event.returnValues.riderNumber)==number){
-            document.getElementById("select").innerHTML = "Surprise Motherfucker!! Your rider is on the way: "
+            arrivalTime = (new Date(event.returnValues.arrivalTime * 1000) - new Date(Date.now()))/1000
+            timer = setInterval(dstatusR(), 1000);
+            document.getElementById("dstatusR").style.visibility = 'visible';
+            document.getElementById("select").innerHTML = "Surprise Motherfucker!! Your rider should be here in : " + arrivalTime
         }
     })
 
@@ -311,10 +409,31 @@ function rideRequest() {
         }
     })
 
+    contract.events.undone({}).on('data', function(event){
+        console.log("undone")
+        console.log(event.returnValues);
+        if (parseInt(event.returnValues.usrNumber)==number){
+            window.alert("Trip ended with penalty/cancellation fee: " + event.returnValues.cancelFee);
+            document.getElementById("tripCmpR").innerHTML = "Trip complete. End trip"
+        }
+    })
 
-	contract.methods.rideRequest(startLoc,endLoc,web3.utils.toWei('400', 'wei')).estimateGas({from: ethAddr}).then(function(gasAmount){
-    console.log(gasAmount)
-    contract.methods.rideRequest(startLoc,endLoc,web3.utils.toWei('400', 'wei')).send({from: ethAddr, gas: gasAmount}).then(function(value) {
+    //"40.005140, -105.256061" => [40005140, -105256061]
+    startLoc = document.getElementById("startLoc").value
+                    .split(',').map(item => parseInt(item.replace('.','')));
+    endLoc = document.getElementById("endLoc").value
+                    .split(',').map(item => parseInt(item.replace('.','')));
+
+    console.log("start: " + startLoc
+                + " end: " + endLoc)
+    document.getElementById("riderOut").innerHTML = "You better be at: "  
+                                                    + startLoc
+                                                    + " to take your lazy ass to: "
+                                                    + endLoc;
+
+    document.getElementById("select").innerHTML = "Waiting for a sorry soul to pick your bitch ass"
+
+    contract.methods.rideRequest(startLoc,endLoc,web3.utils.toWei(tripCost.toString(), 'wei')).send({from: ethAddr, gas: gaslimit}).then(function(value) {
     	console.log('rideRequest')
         console.log(value)
         contract.methods.getNumber().call({from: ethAddr}).then((f) => {
@@ -322,9 +441,12 @@ function rideRequest() {
                number = parseInt(f)
 		       console.log(number)
 		       document.getElementById("usrNumberR").innerHTML = "User Number: " + number
+               web3.eth.getBalance(ethAddr).then(function(value){
+                    console.log(value);
+                    document.getElementById("ether").innerHTML =   value;
+                });
 			})
         })
-    })
 }
 
 function driveRequest() {
@@ -333,8 +455,8 @@ function driveRequest() {
     console.log("Got User Address: " + ethAddr);
 
     web3.eth.getBalance(ethAddr).then(function(value){
-        console.log(web3.utils.fromWei(value));
-        document.getElementById("ether").innerHTML = "Balance: " + web3.utils.fromWei(value);
+        console.log(value);
+        document.getElementById("ether").innerHTML =   value;
     });
 
     contract.events.RiderDetails({}).on('data', function(event){
@@ -349,38 +471,59 @@ function driveRequest() {
         console.log(event.returnValues);
         if (parseInt(event.returnValues.driverNumber)==number){
             document.getElementById("receiveMn").innerHTML = "Popping Bands: " + event.returnValues.bills;
+
+            width = parseInt(document.getElementById("progressDB").style.width)
+            if(width==100){
+                document.getElementById("progressDB").style.width = '0%'
+            }else{
+                width = width + ((parseFloat(val)*100.0)/parseFloat(tripCost));
+                console.log(width)
+                document.getElementById("progressDB").style.width = width.toString() + '%'
+            }
         }
+
         web3.eth.getBalance(ethAddr).then(function(value){
-            console.log(web3.utils.fromWei(value));
-            document.getElementById("ether").innerHTML = "Balance: " + web3.utils.fromWei(value);
+            console.log(value);
+            document.getElementById("ether").innerHTML =   value;
         });
     })
 
-	contract.methods.driveRequest().estimateGas({from: ethAddr}).then(function(gasAmount){
-	    console.log(gasAmount)
-	    contract.methods.driveRequest().send({from: ethAddr, gas: gasAmount}).then(function(value) {
-	    	console.log('driverRequest')
-	        console.log(value)
-            contract.methods.getNumber().call({from: ethAddr}).then((f) => {
-               console.log('getNumber')
-               number = parseInt(f)
-               console.log(number)
-               document.getElementById("usrNumberD").innerHTML = "User Number: " + number
-            })
-	   })
+    contract.events.undone({}).on('data', function(event){
+        console.log("undone")
+        console.log(event.returnValues);
+        if (parseInt(event.returnValues.usrNumber)==number){
+            window.alert("Trip ended with penalty/cancellation fee: " + event.returnValues.cancelFee);
+            document.getElementById("tripCmpD").innerHTML = "Trip complete. End trip"
+        }
     })
+
+    contract.methods.driveRequest().send({from: ethAddr, gas: gaslimit}).then(function(value) {
+    	console.log('driverRequest')
+        console.log(value)
+        contract.methods.getNumber().call({from: ethAddr}).then((f) => {
+           console.log('getNumber')
+           number = parseInt(f)
+           console.log(number)
+           document.getElementById("usrNumberD").innerHTML = "User Number: " + number
+           web3.eth.getBalance(ethAddr).then(function(value){
+                    console.log(value);
+                    document.getElementById("ether").innerHTML =   value;
+                });
+        })
+   })
 }
 
 function getRiders() {
 	document.getElementById("riderList").innerHTML = ''
-	contract.methods.getWaitingRiders().estimateGas({from: ethAddr}).then(function(gasAmount){
-    	console.log(gasAmount)
-	    contract.methods.getWaitingRiders().send({from: ethAddr, gas: gasAmount})
-	    .then(function(value) {
-	    	console.log('getRiders')
-	    	console.log(value)
-	        })
-		})
+    contract.methods.getWaitingRiders().send({from: ethAddr, gas: gaslimit})
+    .then(function(value) {
+    	console.log('getRiders')
+    	console.log(value)
+        web3.eth.getBalance(ethAddr).then(function(value){
+                    console.log(value);
+                    document.getElementById("ether").innerHTML =   value;
+                });
+        })
 }
 
 function pickRider() {
@@ -394,69 +537,116 @@ function pickRider() {
             loss = Math.ceil( tripCost * 0.1 );
             document.getElementById("picRider").innerHTML = "Times up, you loose 10% of the trip: "
                                                             + loss
+            endRide();
 
         }else{
-            width = width - 100/arrivalTime;
+            width = width - 100/30;
             console.log(width)
             document.getElementById("timeRemainingB").style.width = width.toString() + '%'
         }
     }
 
-	contract.methods.pickRider(riderNo).estimateGas({from: ethAddr}).then(function(gasAmount){
-	    console.log(gasAmount)
-	    contract.methods.pickRider(riderNo, arrivalTime).send({from: ethAddr, gas: gasAmount}).then(function(value) {
-	    	console.log('pickRider')
-	        console.log(value)
-            document.getElementById("picRider").innerHTML = "Rider selected: " 
-                                                            + riderNo 
-                                                            + " Get there in: "
-                                                            + arrivalTime
-            timer = setInterval(timeRemaining, 1000);
-            document.getElementById("timeRemaining").style.visibility = 'visible';
-	        })
-    })
+    d = new Date(Date.now())
+    d.setSeconds(d.getSeconds() + 30)
+
+    contract.methods.pickRider(riderNo, parseInt(d.getTime()/1000)).send({from: ethAddr, gas: gaslimit}).then(function(value) {
+    	console.log('pickRider')
+        console.log(value)
+        document.getElementById("picRider").innerHTML = "Rider selected: " 
+                                                        + riderNo 
+                                                        + " Get there in: "
+                                                        + 30
+        timer = setInterval(timeRemaining, 1000);
+        document.getElementById("timeRemaining").style.visibility = 'visible';
+        web3.eth.getBalance(ethAddr).then(function(value){
+                    console.log(value);
+                    document.getElementById("ether").innerHTML =   value;
+                });
+        })
 }
 
 function infromRider(){
-    driverLoc = document.getElementById("driveLoc").value;
+    driverLoc = document.getElementById("driveLoc").value
+                    .split(',').map(item => parseInt(item.replace('.','')));
     console.log("Driver Location: " + driveLoc);
-    contract.methods.informRider(driverLoc).estimateGas({from: ethAddr}).then(function(gasAmount){
-        console.log(gasAmount)
-        contract.methods.informRider(driverLoc).send({from: ethAddr, gas: gasAmount}).then(function(value) {
-            console.log('informRider')
-            console.log(value)
-            document.getElementById("picRider").innerHTML = "Informed rider of location: " + driverLoc
-            })
-    })
-
+    contract.methods.informRider(driverLoc).send({from: ethAddr, gas: gaslimit}).then(function(value) {
+        console.log('informRider')
+        console.log(value)
+        document.getElementById("picRider").innerHTML = "Informed rider of location: " + driverLoc
+        clearTimeout(timer)
+        document.getElementById("timeRemainingB").style.width = '100%'
+        web3.eth.getBalance(ethAddr).then(function(value){
+            console.log(value);
+            document.getElementById("ether").innerHTML =   value;
+        });
+        })
 }
 
 function payDriver() {
     val = document.getElementById("cashAmt").value
-    contract.methods.payDriver().estimateGas({from: ethAddr}).then(function(gasAmount){
-        console.log(gasAmount)
-        console.log(gasAmount + parseInt(web3.utils.toWei(val, 'wei')))
-        contract.methods.payDriver().send({from: ethAddr, gas: 3000000, value:web3.utils.toWei(val, 'wei')}).then(function(value) {
-            console.log('payDriver')
-            console.log(value)
-            document.getElementById("sendMn").innerHTML = "Cash sent: " + val
-            web3.eth.getBalance(ethAddr).then(function(value){
-                console.log(web3.utils.fromWei(value));
-                document.getElementById("ether").innerHTML = "Balance: " + web3.utils.fromWei(value);
-            });
-            });
-    })
+    contract.methods.payDriver().send({from: ethAddr, gas: gaslimit, value:web3.utils.toWei(val, 'wei')}).then(function(value) {
+        console.log('payDriver')
+        console.log(value)
+        document.getElementById("sendMn").innerHTML = "Cash sent: " + val
+        width = parseInt(document.getElementById("progressRB").style.width)
+        if(width>=100){
+            document.getElementById("progressRB").style.width = '0%'
+        }else{
+            width = width + ((parseFloat(val)*100.0)/parseFloat(tripCost));
+            console.log(width)
+            document.getElementById("progressRB").style.width = width.toString() + '%'
+        }
+
+        web3.eth.getBalance(ethAddr).then(function(value){
+            console.log(value);
+            document.getElementById("ether").innerHTML =   value;
+        });
+        });
 	
 }
 
 function endRide() {
-    contract.methods.userReset().estimateGas({from: ethAddr}).then(function(gasAmount){
-        console.log(gasAmount)
-        contract.methods.userReset().send({from: ethAddr, gas: gasAmount}).then(function(value) {
-            console.log('userReset')
-            console.log(value)
-            document.getElementById("tripStop").innerHTML = "Byeeeeeee!!!"
-            });
-    })
+    loss = parseInt(0.1*tripCost)
+    window.alert("Ending trip prematurely might lead to loss of 10% of trip: " + loss);
+
+    contract.methods.userReset().send({from: ethAddr, gas: gaslimit, value:web3.utils.toWei(loss.toString(), 'wei')}).then(function(value) {
+        console.log('userReset')
+        console.log(value)
+        document.getElementById("tripStop").innerHTML = "Byeeeeeee!!!"
+        oldBalance = parseInt(document.getElementById("ether").innerHTML)
+        web3.eth.getBalance(ethAddr).then(function(value){
+            console.log(oldBalance);
+            console.log(value);
+            document.getElementById("ether").innerHTML =   value;
+            console.log("Balance lost" + (oldBalance-value))
+        });
+        });
     
 }
+
+// d = new Date(Date.now())
+// d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
+
+// d = new Date( 1587351339 *1000)
+// d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
+
+
+// Date(d.getTime()/1000)
+// d.getMinutes() + ':' + d.getSeconds()
+// d.setSeconds(d.getSeconds() + 10)
+// d.getMinutes() + ':' + d.getSeconds()
+// Date(d.getTime()/1000)
+// d
+
+// d = new Date('2014-01-01 10:11:55')
+// d.getMinutes() + ':' + d.getSeconds()
+// d.setSeconds(d.getSeconds() + 10)
+// d.getMinutes() + ':' + d.getSeconds()
+
+// parseInt(-14.5678.toString().replace('.',''))
+
+
+// d1 = new Date(Date.now())
+// d = new Date(Date.now())
+// d.setSeconds(d.getSeconds() + 20)
+// d2 = d
