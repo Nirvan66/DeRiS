@@ -257,6 +257,7 @@ var number;
 var tripCost = 400
 var arrivalTime = 10
 var timer;
+var gaslimit = 3000000;
 
 var web3 = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:7545"));
 
@@ -285,6 +286,7 @@ function rideRequest() {
                                                     + document.getElementById("startLoc").value 
                                                     + " to take your lazy ass to: "
 													+ document.getElementById("endLoc").value;
+
     document.getElementById("select").innerHTML = "Waiting for a sorry soul to pick your bitch ass"
 	startLoc = document.getElementById("startLoc").value;
 	endLoc = document.getElementById("endLoc").value;
@@ -389,6 +391,10 @@ function pickRider() {
         if(width==0){
             clearTimeout(timer)
             document.getElementById("timeRemainingB").style.width = '100%'
+            loss = Math.ceil( tripCost * 0.1 );
+            document.getElementById("picRider").innerHTML = "Times up, you loose 10% of the trip: "
+                                                            + loss
+
         }else{
             width = width - 100/arrivalTime;
             console.log(width)
@@ -398,7 +404,7 @@ function pickRider() {
 
 	contract.methods.pickRider(riderNo).estimateGas({from: ethAddr}).then(function(gasAmount){
 	    console.log(gasAmount)
-	    contract.methods.pickRider(riderNo).send({from: ethAddr, gas: gasAmount}).then(function(value) {
+	    contract.methods.pickRider(riderNo, arrivalTime).send({from: ethAddr, gas: gasAmount}).then(function(value) {
 	    	console.log('pickRider')
 	        console.log(value)
             document.getElementById("picRider").innerHTML = "Rider selected: " 
