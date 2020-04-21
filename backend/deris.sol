@@ -130,6 +130,9 @@ contract Deris{
         
         users[msg.sender].arrivalTime = arrivalTime;
         users[userList[riderNumber]].arrivalTime = arrivalTime;
+        users[msg.sender].driverArrived = false;
+        users[users[msg.sender].currPairing].driverArrived = false;
+        
         emit RiderPicked(riderNumber, arrivalTime);
     }
     

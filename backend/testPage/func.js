@@ -355,7 +355,7 @@ var gaslimit = 3000000;
 var web3 = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:7545"));
 
 var contract = new web3.eth.Contract(abi);
-contract.options.address = "0xe3Fe7Cd98C879622c8bc707d10b58b303CB3445F";
+contract.options.address = "0xA5884F847799906b3ACd5C9Fc6bfC820A5d003a6";
 
 
 function myFunction() {
@@ -476,7 +476,7 @@ function driveRequest() {
             if(width==100){
                 document.getElementById("progressDB").style.width = '0%'
             }else{
-                width = width + ((parseFloat(val)*100.0)/parseFloat(tripCost));
+                width = width + ((parseFloat(event.returnValues.bills)*100.0)/parseFloat(tripCost));
                 console.log(width)
                 document.getElementById("progressDB").style.width = width.toString() + '%'
             }
