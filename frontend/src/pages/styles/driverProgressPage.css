@@ -1,0 +1,57 @@
+.DriverProgressPageHeader {
+    text-align: center;
+}
+
+.DriverProgressPage .jumbotron {
+    background-color: black;
+    text-shadow: -1px -1px 0 goldenrod, 1px -1px 0 goldenrod, -1px 1px 0 goldenrod, 1px 1px 0 goldenrod;
+    color: black;
+}
+
+.DriverProgressPage .DriverDetails {
+    text-align: center;
+}
+
+.DriverProgressPage .DriverDetails .Details .DetailContainer {
+    padding: 5%;
+}
+
+.DriverProgressPage .DriverDetails .Details .DetailContainer .DetailLabel {
+    font-weight: 700;
+    font-size: large;
+    width: 100%;
+}
+
+.DriverProgressPage .spinner {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+}
+
+.DriverProgressPage .DriverProgressPageCenter {
+    text-align: center;
+}
+
+.DriverProgressPage .DriverProgressPageCenter button {
+    color: white;
+    background-color: goldenrod;
+    border-color: goldenrod;
+}
+
+.DriverProgressPage .DriverProgressPageCenter .driverArrived  button {
+    color: black;
+    background-color: red;
+    border-color: red;
+}
+
+.DriverProgressPage .progressBarContainer {
+    width: 75%;
+    margin: auto;
+    height: 2em;
+}
+
+.DriverProgressPage .arrivalTimeProgressBarContainer {
+    width: 75%;
+    margin: auto;
+}

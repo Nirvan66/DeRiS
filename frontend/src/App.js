@@ -3,7 +3,8 @@ import './App.css'
 import LandingPage from './pages/landingPage.jsx'
 import RiderPage from './pages/riderPage.jsx'
 import DriverPage from './pages/driverPage.jsx'
-import RideProgressPage from './pages/rideProgressPage.jsx'
+import RiderProgressPage from './pages/riderProgressPage.jsx'
+import DriverProgressPage from './pages/driverProgressPage.jsx'
 import {derisInterface} from './deris_sol_Deris_abi'
 import { 
   initBlockchain,
@@ -18,10 +19,15 @@ import {
 } from './js_modules/contractInterface'
 
 const NO_BLOCKCHAIN_DEV = false;
+const FORGIVENESS_TIME = 60;
 
 class App extends Component {
   componentWillMount() {
     this.loadBlockchainData()
+
+    window.onbeforeunload = () => {
+      resetUser(this.state.ethereumAddress);
+    };
   }
 
   async loadBlockchainData() {
@@ -30,15 +36,16 @@ class App extends Component {
     const portNumber = '7545';
     
     // the blockchain address
-    const address = '0xa58d4404b72C026410c2785fc7a2A656Dd049e1e';
+    const address = '0xeE1c40d0727E940Bf83588B6ABF2d73F2FC3336a';
 
     const blockchainFunctions = await initBlockchain(portNumber, address, derisInterface);
     const getAvailableRidesListener = cb => blockchainFunctions.events.RiderDetails({}).on('data', (event) => cb(event));
     const onRideAcceptedListener = cb => blockchainFunctions.events.RiderPicked({}).on('data', (event) => cb(event));
     const onDriverArrivedListener = cb => blockchainFunctions.events.imHere({}).on('data', event => cb(event));
     const onDriverPaidListener = cb => blockchainFunctions.events.cashMoney({}).on('data', event => cb(event));
+    const onTripEnded = cb => blockchainFunctions.events.undone({}).on('data', event => cb(event));
 
-    this.setState({ blockchainFunctions, onRideAcceptedListener, getAvailableRidesListener, onDriverArrivedListener, onDriverPaidListener});
+    this.setState({ blockchainFunctions, onRideAcceptedListener, getAvailableRidesListener, onDriverArrivedListener, onDriverPaidListener, onTripEnded});
   }
 
   constructor(props) {
@@ -52,6 +59,7 @@ class App extends Component {
       driverJobRadius: '',
       driverJobInfo: '',
       riderNumber: null,
+      driverNumber: null,
       tripRate: null,
       // address info for printing to page
       pickupAddress: null,
@@ -60,7 +68,8 @@ class App extends Component {
       isLandingPage: true,
       isRiderPage: false,
       isDriverPage: false,
-      isRideProgressPage: false,
+      isRiderProgressPage: false,
+      isDriverProgressPage: false,
       // blockchain functions
       blockchainFunctions: null,
       // blockchain events
@@ -93,7 +102,7 @@ class App extends Component {
     });
   }
 
-  onRiderPageSubmit(payload){
+  async onRiderPageSubmit(payload){
     const isContinuing = payload.requestType == 'request';
 
     let riderNumber = null;
@@ -102,7 +111,11 @@ class App extends Component {
       const endLoc = {lat: payload.endLocation.lat(), lng: payload.endLocation.lng()};
       const tripRate =  Math.round(payload.tripRate);
       requestRide(startLoc, endLoc, tripRate, this.state.ethereumAddress);
-      getMyRiderNumber(this.state.ethereumAddress).then(number => riderNumber = number);
+      riderNumber = await getMyRiderNumber(this.state.ethereumAddress);
+    }
+
+    if (!isContinuing){
+      resetUser(this.state.ethereumAddress);
     }
 
     this.setState({
@@ -111,7 +124,7 @@ class App extends Component {
       pickupAddress: payload.startAddress,
       dropOffAddress: payload.endAddress,
       isRiderPage: false,
-      isRideProgressPage: isContinuing,
+      isRiderProgressPage: isContinuing,
       isLandingPage: !isContinuing, 
       riderNumber: riderNumber,
       tripRate: Math.round(payload.tripRate),
@@ -121,7 +134,8 @@ class App extends Component {
 
   onDriverPageSubmit(payload) {
     const isCancel = payload.isCancel;
-
+    let driverNumber;
+    let arrivalTime;
     if (isCancel){
       resetUser(this.state.ethereumAddress);
       this.setState({
@@ -129,23 +143,26 @@ class App extends Component {
         isLandingPage: true,
       })
     }
-
-    // accept the job
-    acceptJob(parseInt(payload.jobInfo.riderNumber), this.state.ethereumAddress);
-
-    console.log('PAYLOAD FRM ON DRIVER PAGE SUBMIT')
-    console.log(payload)
+    else {
+      acceptJob(parseInt(payload.jobInfo.riderNumber), payload.arrivalTime + FORGIVENESS_TIME, this.state.ethereumAddress);
+      getMyRiderNumber(this.state.ethereumAddress).then(number => driverNumber = number);
+      arrivalTime = Math.round(new Date().getTime() / 1000) + payload.arrivalTime + FORGIVENESS_TIME;
+    }
 
     this.setState({
       isDriverPage: false,
-      isRideProgressPage: !isCancel,
+      isDriverProgressPage: !isCancel,
       isLandingPage: isCancel,
       driverStartLocation: payload.center,
       driverJobRadius: payload.radius,
       driverJobInfo: payload.jobInfo,
       pickupAddress: payload.jobInfo.startAddr,
       dropOffAddress: payload.jobInfo.endAddr,
+      riderStartLocation: payload.jobInfo.startLoc,
+      riderEndLocation: payload.jobInfo.endLoc,
       tripRate: payload.jobInfo.rate,
+      driverNumber,
+      arrivalTime,
     });
   }
 
@@ -175,9 +192,8 @@ class App extends Component {
           getAvailableRides={getCurrentRides}
           ethereumAddress={this.state.ethereumAddress}
         ></DriverPage>
-        <RideProgressPage
-          show={this.state.isRideProgressPage}
-          role={this.state.role}
+        <RiderProgressPage
+          show={this.state.isRiderProgressPage}
           riderPickupAddress={this.state.pickupAddress}
           riderDropOffAddress={this.state.dropOffAddress}
           riderPickupLocation={this.state.riderStartLocation}
@@ -186,13 +202,27 @@ class App extends Component {
           onRideAcceptedListener={this.state.onRideAcceptedListener}
           onDriverArrivedListener={this.state.onDriverArrivedListener}
           riderNumber={this.state.riderNumber}
-          informRider={informRider}
           ethereumAddress={this.state.ethereumAddress}
           tripRate={this.state.tripRate}
           directions={this.state.directions}
           payDriver={payDriver}
+          forgivenessTime={FORGIVENESS_TIME}
+        ></RiderProgressPage>
+        <DriverProgressPage
+          show={this.state.isDriverProgressPage}
+          riderPickupAddress={this.state.pickupAddress}
+          riderDropOffAddress={this.state.dropOffAddress}
+          riderPickupLocation={this.state.riderStartLocation}
+          riderDropOffLocation={this.state.riderEndLocation}
+          DEV={NO_BLOCKCHAIN_DEV}
+          driverNumber={this.state.driverNumber}
+          informRider={informRider}
+          ethereumAddress={this.state.ethereumAddress}
+          tripRate={this.state.tripRate}
+          directions={this.state.directions}
           onDriverPaid={this.state.onDriverPaidListener}
-        ></RideProgressPage>
+          arrivalTime={this.state.arrivalTime}
+        ></DriverProgressPage>
       </div>
       
     );

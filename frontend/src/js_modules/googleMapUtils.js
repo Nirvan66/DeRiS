@@ -68,6 +68,39 @@ function totalRouteDistance (route) {
 
 /**
  * 
+ * @param {Object} startLoc object with .lat and .lng callables for direction lookup
+ * @param {Object} endLoc object with .lat and .lng callables for direction lookup
+ * 
+ * @returns {Promise} when resolved it does 
+ */
+async function getRoute(startLoc, endLoc){
+    const directionsService = new google.maps.DirectionsService();
+    const origin = startLoc;
+    const destination = endLoc;
+
+    return new Promise(async (resolve, reject) => {
+        await directionsService.route(
+            {
+                origin: origin,
+                destination: destination,
+                travelMode: google.maps.TravelMode.DRIVING
+            },
+            (result, status) => {
+                if (status === google.maps.DirectionsStatus.OK) {
+                    resolve(result);
+                } 
+                else {
+                    console.log('Error: Directions could not be found');
+                    reject();
+                }
+            }
+            );
+        }
+    )
+}
+
+/**
+ * 
  * @param {DOM Element} inputField  text input field DOM element to add places auto complete functionality to. Needs to be the input element
  * @param {object}      options     options argument to add. Documentation for this can be found at the google page https://developers.google.com/maps/documentation/javascript/places-autocomplete
  */
@@ -119,5 +152,6 @@ export  {
     makeInputAutoComplete,
     milesToMeters,
     metersToMiles,
-    getDistance
+    getDistance,
+    getRoute,
 }

@@ -3,6 +3,26 @@ import Web3 from 'web3';
 let web3, abi, contract;
 const gasLimit = 3000000;
 
+// TODO: make a funciton to make int from the first one to lat lng (getRides)
+
+// TODO: in the driver page, get the estimated time to pickRider (acceptRide or whatever) -- time.now + time to get there (pass to pickRider) (divide the sum by 1000)
+
+// TODO: endRide on timer up from the previous todo (userReset)
+
+// TODO: add a .catch in informRider to catch the failure. Lets the driver know that the driver is't close enough to the rider
+
+/**
+ * Turns coordinates into the form for the blockchain of [int, int] ([lat, lng])
+ * 
+ * @param {Object} loc  object with .lat and .lng attributes. These should be strings 
+ */
+function __blockifyCoords(loc){
+    return [
+        Math.round(parseFloat(loc.lat) * 1000000),
+        Math.round(parseFloat(loc.lng) * 1000000)
+    ]
+}
+
 /**
  * Init the blockchain for the app
  * 
@@ -27,12 +47,8 @@ async function initBlockchain(portNumber, contractAddress, abiInterface) {
  */
 function setDriver(ethereumAddress){
     return new Promise ((resolve, reject) => {
-        contract.methods.driveRequest().estimateGas({from: ethereumAddress}).then((gasAmount) => {
-            console.log('GAS AMOUTN FROM SET DRIVER')
-            console.log(gasAmount)
-            contract.methods.driveRequest().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
-                resolve();
-            })
+        contract.methods.driveRequest().send({from: ethereumAddress, gas: gasLimit}).then((value) => {
+            resolve();
         })
     })
 }
@@ -46,28 +62,30 @@ function setDriver(ethereumAddress){
  * @param {String} ethereumAddress  string with the ethereum address of the rider
  */
 function requestRide(startLoc, endLoc, rideCost, ethereumAddress){
-    const startLatLng = [startLoc.lat, startLoc.lng].join(',');
-    const endLatLng = [endLoc.lat, endLoc.lng].join(',');
-    contract.methods.rideRequest(startLatLng, endLatLng, rideCost).estimateGas({from: ethereumAddress}).then((gasAmount) => {
-        console.log(gasAmount)
-        contract.methods.rideRequest(startLatLng, endLatLng, rideCost).send({from: ethereumAddress, gas: gasAmount}).then((value) => {
-            console.log(value)
-            })
-        })
+    const startLatLng = __blockifyCoords(startLoc);
+    const endLatLng = __blockifyCoords(endLoc);
+
+    contract.methods.rideRequest(startLatLng, endLatLng, rideCost).send({from: ethereumAddress, gas: gasLimit}).then((value) => {
+        console.log(value)
+    })
 }
 
 /**
  * Method called to send a ride request to the blockchain
  * 
- * @param {int} riderNumber         
+ * @param {int} riderNumber  number from getNumber that identifies a user
+ * @param {int} timeToArrive number of seconds the driver has to get to the rider before penalty
+ *        
  */
-function acceptJob(riderNumber, ethereumAddress){
-    contract.methods.pickRider(riderNumber).estimateGas({from: ethereumAddress}).then((gasAmount) => {
-        console.log(gasAmount)
-        contract.methods.pickRider(riderNumber).send({from: ethereumAddress, gas: gasAmount}).then((value) => {
-            console.log(value)
-            })
-        })
+function acceptJob(riderNumber, timeToArrive, ethereumAddress){
+
+    const now = Math.round(new Date().getTime() / 1000); //current time in seconds
+
+    const timeRemaining = now + timeToArrive;
+
+    contract.methods.pickRider(riderNumber, timeRemaining).send({from: ethereumAddress, gas: gasLimit}).then((value) => {
+        console.log(value)
+    })
 }
 
 /**
@@ -77,14 +95,9 @@ function acceptJob(riderNumber, ethereumAddress){
  * 
  */
 function getCurrentRides(ethereumAddress){
-    console.log('ETHEREUM ADDRESS\n' + ethereumAddress)
-    contract.methods.getWaitingRiders().estimateGas({from: ethereumAddress}).then((gasAmount) => {
-        console.log("GAS AMOUNT IN GET CURRENT RIDES: \n" + gasAmount)
-        console.log(gasAmount)
-        contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
-            console.log('RIDES EMITTED')
-        }).catch(error => console.log("ERROR: CANNOT GET WAITING RIDERS\n" + error +'\nGAS AMOUNT'+gasAmount));
-    }).catch(error => console.log("ERROR: CANNOT CHECK GAS FOR WAITING RIDERS.\n" + error));
+    contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasLimit}).then((value) => {
+        console.log('RIDES EMITTED')
+    }).catch(error => console.log("ERROR: CANNOT GET WAITING RIDERS\n" + error +'\nGAS AMOUNT'+gasLimit));
 }
 
 /**
@@ -93,11 +106,8 @@ function getCurrentRides(ethereumAddress){
  * @param {String} ethereumAddress string with the ethereum address of the user to reset 
  */
 function resetUser(ethereumAddress){
-    contract.methods.userReset().estimateGas({from: ethereumAddress}).then((gasAmount) => {
-        console.log(gasAmount)
-        contract.methods.userReset().send({from: ethereumAddress, gas: gasAmount}).then((value) => {
-            console.log('RESET THE USER')
-        });
+    contract.methods.userReset().send({from: ethereumAddress, gas: gasLimit}).then((value) => {
+        console.log('RESET THE USER')
     });
 }
 
@@ -107,14 +117,10 @@ function resetUser(ethereumAddress){
  * @param {*} ethereumAddress   string with the ethereum address of driver
  */
 function informRider(loc, ethereumAddress) {
-    console.log('LOCATION FROM INFORM RIDER\n'+loc);
-    console.log('EETHEREUM ADDRESS FROM INFORM RIDER\n'+ethereumAddress)
-    const locLatLng = [loc.lat, loc.lng].join(',');
-    contract.methods.informRider(locLatLng).estimateGas({from: ethereumAddress}).then( gasAmount => {
-        contract.methods.informRider(locLatLng).send({from: ethereumAddress, gas: gasAmount}).then( val => {
-            console.log('Sent inform rider message');
-        })
-    })
+    const locLatLng = __blockifyCoords(loc);
+    contract.methods.informRider(locLatLng).send({from: ethereumAddress, gas: gasLimit}).then( val => {
+        console.log('Sent inform rider message');
+    }).catch(error => console.log('Error: not close enough to the rider. Please move closer'))
 }
 
 /**
@@ -139,11 +145,9 @@ function getMyRiderNumber(ethereumAddress){
  */
 function payDriver(amount, ethereumAddress){
     amount = parseInt(amount).toString();
-    contract.methods.payDriver().estimateGas({from: ethereumAddress}).then( gasAmount => {
-        contract.methods.payDriver().send({from: ethereumAddress, gas: gasLimit, value: web3.utils.toWei(amount, 'wei')}).then( value => {
-            console.log('Paid driver')
-        }).catch('Error paying driver')
-    }).catch('calculating gas')
+    contract.methods.payDriver().send({from: ethereumAddress, gas: gasLimit, value: web3.utils.toWei(amount, 'wei')}).then( value => {
+        console.log('Paid driver')
+    }).catch('Error paying driver')
 }
 
 export {

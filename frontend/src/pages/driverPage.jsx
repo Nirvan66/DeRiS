@@ -5,24 +5,16 @@ import { SingleTextBox } from '../modules/textInputs.jsx'
 import { SingleButton } from '../modules/buttonInputs.jsx'
 import { withScriptjs } from "react-google-maps";
 import Map from '../modules/googleMap.jsx';
-import { milesToMeters, metersToMiles, getDistance, getReverseGeocodingData } from '../js_modules/googleMapUtils.js'
+import { milesToMeters, metersToMiles, getDistance, getReverseGeocodingData, getRoute, getGeocodingData } from '../js_modules/googleMapUtils.js'
 
 const API_KEY = 'AIzaSyChykMQlbWKcQy-qixkVnXCrGVoy-vdlM4'
 const MapLoader = withScriptjs(Map);
+const REFRESH_TIME = 10; //seconds
 
 /**
  * The module for the driver page
  * 
- * @param {object}  props       Properties passed in from the App. Should have 
- *                              onSubmit: function that takes payload 
- *                                  {
- *                                      center:         number, 
- *                                      radius:         number,
- *                                      jobInfo:        object,
- *                                      isCancel:       boolean
- *                                  }
- *                                  request type is either 'request' or 'cancel'
- *                              show: boolean to render the page
+ * @param {object}  props      
  * 
  * @returns {React.Component}   The react component for the entire page
  */
@@ -55,6 +47,9 @@ class DriverPage extends React.Component {
         this.createCircleObject = this.createCircleObject.bind(this);
         this.filterJobs = this.filterJobs.bind(this);
         this.renderJobButtons = this.renderJobButtons.bind(this);
+        this.renderListHeader = this.renderListHeader.bind(this);
+        this.refreshJobList = this.refreshJobList.bind(this);
+        this.ridesContains = this.ridesContains.bind(this);
     }
 
     componentDidMount(){
@@ -94,8 +89,21 @@ class DriverPage extends React.Component {
         this.setState({radius: parseFloat(radius), stringRadius: radius});
     }
 
+    // get the arrival time. Value returned is in seconds
+    async getArrivalTime(rideInfo){
+        const { startAddr, endAddr } = rideInfo;
+        const startLoc = await getGeocodingData(startAddr);
+        const endLoc = await getGeocodingData(endAddr);
+        const directions = await getRoute(startLoc, endLoc);
+        return [ 
+            directions.routes[0].legs[0].duration.value,
+            startLoc,
+            endLoc
+        ]
+    }
+
     // return the job details from the list item clicked
-    onJobAccept(event) {
+    async onJobAccept(event) {
         const sep = '/?/';
         const state = this.state;
         event.preventDefault();
@@ -116,6 +124,12 @@ class DriverPage extends React.Component {
         state.isCancel = false;
         state.jobInfo = rideInfo;
 
+        // get the route from start to end to get the time needed
+        const arrivalDetails = await this.getArrivalTime(rideInfo);
+        state.arrivalTime = arrivalDetails[0];
+        state.jobInfo.startLoc = arrivalDetails[1];
+        state.jobInfo.endLoc = arrivalDetails[2];
+     
         // pass the data back up to the caller
         if (this.props.onSubmit){
             this.props.onSubmit(state);
@@ -130,12 +144,27 @@ class DriverPage extends React.Component {
         this.props.onSubmit(state);
     }
 
+    ridesContains(currentRides, newRide){
+        for (let ride of currentRides){
+            if (ride.riderNumber == newRide.riderNumber){
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Getting rides from blockchain.
     async getRides(payload) {
 
+        // it comes in as NOT being valid locations
+        // lat and lng are <value>*1000000 so divide by that
+        // comes in an array of [lat, lng]
+        // payload.returnvalues.(pick, drop).(lat, long)
+        const multFactor = 1000000;
+
         const ride = payload.returnValues;
         let currentRides = this.state.currentRides;
-        const makeForDistanceCalc = loc => {return {lat: () => parseFloat(loc.split(',')[0]), lng: () => parseFloat(loc.split(',')[1])}};
+        const makeForDistanceCalc = loc => {return {lat: () => loc.lat / multFactor, lng: () => loc.long / multFactor}};
 
         let callableStartLoc = makeForDistanceCalc(ride.pick);
         let callableEndLoc = makeForDistanceCalc(ride.drop);
@@ -153,7 +182,9 @@ class DriverPage extends React.Component {
             endAddr: endAddr,
             rate: parseInt(ride.escrow)
         };
-
+        if (this.ridesContains(currentRides, validRide)){
+            return;
+        }
         currentRides.push(validRide);
         this.setState({currentRides});
     }
@@ -190,6 +221,11 @@ class DriverPage extends React.Component {
         }
     }
 
+    // refresh and look for more jobs
+    refreshJobList(){
+        this.props.getAvailableRides(this.props.ethereumAddress);
+    }
+
     // only take the jobs that are within my radius
     filterJobs(){
         if (!this.props.DEV && (!this.state.center || !this.state.radius)){
@@ -220,6 +256,21 @@ class DriverPage extends React.Component {
         return closeRides;
     }
 
+    renderListHeader(){
+        return (
+            <table className="ListHeadings">
+                <tbody>
+                    <tr>
+                        <td>Pick Up Location</td>
+                        <td>Drop Off Location</td>
+                        <td>Job Fare</td>
+                        <td>Accept Job</td>
+                    </tr>
+                </tbody>
+            </table>
+        )
+    }
+
     // create buttons for rides
     renderJobButtons(){
         if (!this.props.DEV && (!this.state.currentRides || !this.state.currentRides.length)){
@@ -227,8 +278,7 @@ class DriverPage extends React.Component {
         }
         
         let closeRides = this.filterJobs();
-        console.log('CLOSE RIDES')
-        console.log(closeRides)
+
         let currentRidesButtons = [];
         
         for (let ride of closeRides){
@@ -241,9 +291,13 @@ class DriverPage extends React.Component {
         }
         
         return (
-            <ButtonWithLabelsList
-                elements={currentRidesButtons}
-            ></ButtonWithLabelsList>
+            <div className="DriverPageJobListContainer">
+                {this.renderListHeader()}
+                <ButtonWithLabelsList
+                    elements={currentRidesButtons}
+                ></ButtonWithLabelsList>
+            </div>
+            
         )
     }
 
@@ -263,8 +317,8 @@ class DriverPage extends React.Component {
             this.props.getAvailableRidesListener(this.getRides);
         }
         if (!this.localVals.requestedRides && this.props.getAvailableRides && this.props.ethereumAddress){
-            this.props.getAvailableRides(this.props.ethereumAddress);
             this.localVals.requestedRides = true;
+            setInterval(this.refreshJobList, REFRESH_TIME * 1000);
         }
 
         return (

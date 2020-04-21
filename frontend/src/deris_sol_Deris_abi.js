@@ -14,16 +14,40 @@ export const derisInterface = [
 				"type": "uint256"
 			},
 			{
+				"components": [
+					{
+						"internalType": "int256",
+						"name": "lat",
+						"type": "int256"
+					},
+					{
+						"internalType": "int256",
+						"name": "long",
+						"type": "int256"
+					}
+				],
 				"indexed": false,
-				"internalType": "string",
+				"internalType": "struct Deris.coordinates",
 				"name": "pick",
-				"type": "string"
+				"type": "tuple"
 			},
 			{
+				"components": [
+					{
+						"internalType": "int256",
+						"name": "lat",
+						"type": "int256"
+					},
+					{
+						"internalType": "int256",
+						"name": "long",
+						"type": "int256"
+					}
+				],
 				"indexed": false,
-				"internalType": "string",
+				"internalType": "struct Deris.coordinates",
 				"name": "drop",
-				"type": "string"
+				"type": "tuple"
 			},
 			{
 				"indexed": false,
@@ -42,6 +66,12 @@ export const derisInterface = [
 				"indexed": false,
 				"internalType": "uint256",
 				"name": "riderNumber",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "arrivalTime",
 				"type": "uint256"
 			}
 		],
@@ -78,12 +108,31 @@ export const derisInterface = [
 			},
 			{
 				"indexed": false,
-				"internalType": "string",
+				"internalType": "int256[]",
 				"name": "location",
-				"type": "string"
+				"type": "int256[]"
 			}
 		],
 		"name": "imHere",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "usrNumber",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "cancelFee",
+				"type": "uint256"
+			}
+		],
+		"name": "undone",
 		"type": "event"
 	},
 	{
@@ -116,9 +165,9 @@ export const derisInterface = [
 	{
 		"inputs": [
 			{
-				"internalType": "string",
+				"internalType": "int256[]",
 				"name": "loc",
-				"type": "string"
+				"type": "int256[]"
 			}
 		],
 		"name": "informRider",
@@ -139,6 +188,11 @@ export const derisInterface = [
 				"internalType": "uint256",
 				"name": "riderNumber",
 				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "arrivalTime",
+				"type": "uint256"
 			}
 		],
 		"name": "pickRider",
@@ -149,14 +203,14 @@ export const derisInterface = [
 	{
 		"inputs": [
 			{
-				"internalType": "string",
+				"internalType": "int256[]",
 				"name": "pick",
-				"type": "string"
+				"type": "int256[]"
 			},
 			{
-				"internalType": "string",
+				"internalType": "int256[]",
 				"name": "drop",
-				"type": "string"
+				"type": "int256[]"
 			},
 			{
 				"internalType": "uint256",
@@ -192,7 +246,7 @@ export const derisInterface = [
 		"inputs": [],
 		"name": "userReset",
 		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "payable",
 		"type": "function"
 	},
 	{
@@ -226,14 +280,53 @@ export const derisInterface = [
 				"type": "address"
 			},
 			{
-				"internalType": "string",
+				"components": [
+					{
+						"internalType": "int256",
+						"name": "lat",
+						"type": "int256"
+					},
+					{
+						"internalType": "int256",
+						"name": "long",
+						"type": "int256"
+					}
+				],
+				"internalType": "struct Deris.coordinates",
 				"name": "pickup",
-				"type": "string"
+				"type": "tuple"
 			},
 			{
-				"internalType": "string",
+				"components": [
+					{
+						"internalType": "int256",
+						"name": "lat",
+						"type": "int256"
+					},
+					{
+						"internalType": "int256",
+						"name": "long",
+						"type": "int256"
+					}
+				],
+				"internalType": "struct Deris.coordinates",
 				"name": "dropoff",
-				"type": "string"
+				"type": "tuple"
+			},
+			{
+				"internalType": "uint256",
+				"name": "arrivalTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "driverArrived",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "inProgress",
+				"type": "bool"
 			},
 			{
 				"internalType": "uint256",

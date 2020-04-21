@@ -11,7 +11,8 @@ import {
 
 import {
   getReverseGeocodingData,
-  getGeocodingData
+  getGeocodingData,
+  getRoute,
 } from '../js_modules/googleMapUtils.js'
 
 /**
@@ -105,37 +106,16 @@ async handleMapClick (ref, map, ev) {
   }
 }
 
-addRoute(startLoc, endLoc) {
-  const directionsService = new google.maps.DirectionsService();
-  const origin = startLoc;
-  const destination = endLoc;
+async addRoute(startLoc, endLoc) {
+  const directions = await getRoute(startLoc, endLoc);
 
-  console.log('Start Location')
-  console.log(startLoc)
-  console.log('End Location')
-  console.log(endLoc)
-
-  directionsService.route(
-      {
-      origin: origin,
-      destination: destination,
-      travelMode: google.maps.TravelMode.DRIVING
-      },
-      (result, status) => {
-      if (status === google.maps.DirectionsStatus.OK) {
-        console.log('rendering directions')
-        if (this.props.onRouteMade){
-          this.props.onRouteMade(result)
-        }
-          this.setState({
-            directionsRendered: true,
-            directions: result
-          })
-      } else {
-          console.log('Error: Directions could not be found')
-      }
-      }
-  )
+  if (this.props.onRouteMade){
+    this.props.onRouteMade(directions);
+  }
+  this.setState({
+    directionsRendered: true,
+    directions
+  });
 }
 
 // get the properties of the circle
@@ -195,7 +175,7 @@ getCircleVals() {
         )}
       </GoogleMap>
     ));
-    if (this.props.directions && !this.state.directionsRendered){
+    if (this.props.directions && !this.state.directionsRendered && this.props.addRoute){
       this.addRoute(this.props.directions.startLoc, this.props.directions.endLoc);
     }
     return (

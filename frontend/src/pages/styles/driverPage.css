@@ -11,11 +11,6 @@
     margin-left: 12.5%;
 }
 
-.driverPageContainer .buttonWithLabelsListContainer{
-    width: 75%;
-    margin-left: 12.5%;   
-}
-
 .driverPageContainer .buttonWithLabelsListContainer .ButtonWithLabels {
     background-color: white;
 }
@@ -59,4 +54,37 @@
     background-color: black;
     border-color: black;
     color: white;
+    margin-top: 1em;
+    margin-bottom: 4em;
 }
+
+.driverPageContainer .DriverPageJobListContainer {
+    width: 75%;
+    margin-left: 12.5%;
+    margin-right: 12.5%;
+    margin-top: 1em;
+}
+
+.driverPageContainer .DriverPageJobListContainer {
+    text-align: center;
+}
+
+.driverPageContainer .DriverPageJobListContainer .ListHeadings {
+    width: 100%;
+    margin-bottom: 1em;
+    font-weight: 700;
+    font-size: large;
+}
+
+.driverPageContainer .DriverPageJobListContainer .ListHeadings td {
+    margin: auto;
+}
+
+.driverPageContainer .DriverPageJobListContainer .ListHeadings td:first-of-type{
+    width: 37.5%;
+}
+
+.driverPageContainer .DriverPageJobListContainer .ListHeadings td:nth-child(2){
+    width: 37.5%;
+}
+

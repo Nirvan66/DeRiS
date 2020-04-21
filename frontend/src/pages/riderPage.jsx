@@ -104,6 +104,8 @@ class RiderPage extends React.Component {
     }
 
     onRouteMade(payload) {
+        console.log('PAYLOAD FROM ON ROUTE MADE')
+        console.log(payload)
         const directions = payload;
         const totalDistance = metersToMiles(totalRouteDistance(directions.routes[0]));
         const tripRate = totalDistance * weiPerMile;
@@ -135,6 +137,7 @@ class RiderPage extends React.Component {
                 onClick={this.onMapClick}
                 onRouteMade={this.onRouteMade}
                 directions={directions}
+                addRoute={true}
             />
             <div className="rateContainer"><h2>Rate: </h2>{this.state.tripRate}</div>
             </div>
