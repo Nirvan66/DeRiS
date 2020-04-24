@@ -28,7 +28,8 @@ class DriverPage extends React.Component {
             stringRadius: null,
             jobInfo: null,
             isCancel: false,
-            currentRides: []
+            currentRides: [],
+            needsReset: false,
         }
 
         this.localVals = {
@@ -50,6 +51,25 @@ class DriverPage extends React.Component {
         this.renderListHeader = this.renderListHeader.bind(this);
         this.refreshJobList = this.refreshJobList.bind(this);
         this.ridesContains = this.ridesContains.bind(this);
+        this.resetState = this.resetState.bind(this);
+    }
+
+    resetState(){
+        this.localVals = {
+            hasCenter: false,
+            hasRadius: false,
+            requestedRides: false
+        }
+        this.setState({
+            center: null,
+            centerAddress: null,
+            radius: null,
+            stringRadius: null,
+            jobInfo: null,
+            isCancel: false,
+            currentRides: [],
+            needsReset: false,
+        })
     }
 
     componentDidMount(){
@@ -160,6 +180,10 @@ class DriverPage extends React.Component {
         // lat and lng are <value>*1000000 so divide by that
         // comes in an array of [lat, lng]
         // payload.returnvalues.(pick, drop).(lat, long)
+        if (this.state.needsReset){
+            this.resetState();
+        }
+
         const multFactor = 1000000;
 
         const ride = payload.returnValues;
@@ -186,7 +210,7 @@ class DriverPage extends React.Component {
             return;
         }
         currentRides.push(validRide);
-        this.setState({currentRides});
+        this.setState({currentRides, needsReset: true});
     }
 
     // set the center when the map is clicked
@@ -194,7 +218,8 @@ class DriverPage extends React.Component {
         this.localVals.hasCenter = true;
         this.setState({
             center: payload.location,
-            centerAddress: payload.address
+            centerAddress: payload.address,
+            needsReset: true
         });
     }
 
@@ -203,7 +228,7 @@ class DriverPage extends React.Component {
         let { radius } = payload;
         radius = metersToMiles(radius);
         radius = Math.round(radius * 100) / 100;
-        this.setState({radius: parseFloat(radius), stringRadius: radius.toString()});
+        this.setState({radius: parseFloat(radius), stringRadius: radius.toString(), needsReset: true});
     }
 
     // create object for the map to create a circle from 
@@ -304,6 +329,11 @@ class DriverPage extends React.Component {
     render() {
         // return if not supposed to show
         if (!this.props.show){
+            console.log('IN THE NO SHOW IN RIDER PROG. NEEDS RESET IS')
+            console.log(this.state.needsReset)
+            if (this.state.needsReset){
+                this.resetState();
+            }
             return (<div className="empty"></div>)
         }
         // circle info if ready for it
@@ -318,6 +348,7 @@ class DriverPage extends React.Component {
         }
         if (!this.localVals.requestedRides && this.props.getAvailableRides && this.props.ethereumAddress){
             this.localVals.requestedRides = true;
+            this.refreshJobList();
             setInterval(this.refreshJobList, REFRESH_TIME * 1000);
         }
 

@@ -106,9 +106,12 @@ function getCurrentRides(ethereumAddress){
  * @param {String} ethereumAddress string with the ethereum address of the user to reset 
  */
 function resetUser(ethereumAddress){
-    contract.methods.userReset().send({from: ethereumAddress, gas: gasLimit}).then((value) => {
-        console.log('RESET THE USER')
-    });
+    return new Promise((resolve, reject) => {
+        contract.methods.userReset().send({from: ethereumAddress, gas: gasLimit}).then((value) => {
+            console.log('RESET THE USER');
+            resolve();
+        });
+    })
 }
 
 /**

@@ -37,6 +37,7 @@
     color: white;
     background-color: goldenrod;
     border-color: goldenrod;
+    margin-top: 1em;
 }
 
 .DriverProgressPage .DriverProgressPageCenter .driverArrived  button {
@@ -54,4 +55,10 @@
 .DriverProgressPage .arrivalTimeProgressBarContainer {
     width: 75%;
     margin: auto;
+}
+
+.DriverProgressPage .cancelButtonContainer button {
+    color: white;
+    background-color: black;
+    border-color: black;
 }

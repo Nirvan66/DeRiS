@@ -190,6 +190,7 @@ contract Deris{
         require(users[msg.sender].state != Status.INACTIVE, "Need to be an active user to complete ride");
         if(users[msg.sender].inProgress == true){
             payable(msg.sender).transfer(msg.value);
+            emit undone(users[msg.sender].number, msg.value);
             reset(msg.sender);
         }
         else{

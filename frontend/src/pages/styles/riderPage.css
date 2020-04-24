@@ -2,6 +2,20 @@
     background-color: gainsboro;
 }
 
+.RiderPage table{
+    border-collapse: unset;
+    margin: none;
+    width: 100%;
+}
+
+.RiderPage table td:first-of-type {
+    width: 15%;
+}
+
+.RiderPage table td:last-of-type {
+    width: 85%
+}
+
 .RiderPage .TwoButtonTwoTextSubmissionContainer {
     width: 75%;
     margin-left: 12.5%;

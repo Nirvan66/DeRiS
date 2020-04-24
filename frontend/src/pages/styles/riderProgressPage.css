@@ -8,6 +8,7 @@
     color: black;
 }
 
+
 .RiderProgressPage .RiderDetails {
     text-align: center;
 }
@@ -26,7 +27,7 @@
     display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 50%;
+    width: 45%;
 }
 
 .RiderProgressPage .RiderProgressPageCenter {
@@ -49,4 +50,32 @@
     width: 75%;
     margin: auto;
     height: 2em;
+}
+
+.RiderProgressPage .summaryContainer {
+    text-align: center;
+    padding-top: 2em;
+    font-size: large;
+}
+
+.RiderProgressPage .summaryContainer{
+    padding-top: 1em;
+}
+
+.RiderProgressPage .summaryContainer, .amountPaidContainer {
+    padding-top: 1%;
+    padding-bottom: 1%;
+}
+
+.RiderProgressPage .backToLoginButtonContainer button{
+    color: white;
+    background-color: goldenrod;
+    border-color: goldenrod;
+}
+
+.RiderProgressPage .cancelButtonContainer button {
+    color: white;
+    background-color: black;
+    border-color: black;
+    margin-top: 2em;
 }

@@ -2,12 +2,9 @@ import React from 'react';
 import { Jumbotron, ProgressBar } from 'react-bootstrap';
 import'./styles/driverProgressPage.css'
 import spinner from '../resources/spinner.gif'
-import rideAcceptedSpinner from '../resources/oke.gif'
-import hopIn from '../resources/hopin.gif'
 import { SingleButton } from '../modules/buttonInputs'
 import {metersToMiles} from '../js_modules/googleMapUtils'
 
-const mockTimePerMile = 100; // every mile takes x amount of seconds
 
 /**
  * 
@@ -18,11 +15,14 @@ class DriverProgressPage extends React.Component {
         super(props);
         this.state = {
             showSpinner: true,
-            rideAccepted: false,
             riderInformed: false,
             paid: 0,
             startTime: 0,
             remainingTime: 0,
+            tripEnded: false,
+            showSummary: false,
+            riderCancelled: false,
+            needsReset: false,
         }
         this.localVals = {
             startedListener: false
@@ -33,15 +33,69 @@ class DriverProgressPage extends React.Component {
         this.renderDriverPayout = this.renderDriverPayout.bind(this);
         this.onDriverPaid = this.onDriverPaid.bind(this);
         this.calcTimeToArrival = this.calcTimeToArrival.bind(this);
+        this.cancelTrip = this.cancelTrip.bind(this);
+        this.tripEnded = this.tripEnded.bind(this);
+        this.renderSummary = this.renderSummary.bind(this);
+        this.resetState = this.resetState.bind(this);
+    }
+
+    resetState(){
+        this.localVals = {
+            startedListener: false
+        }
+        this.setState(this.state = {
+            showSpinner: true,
+            riderInformed: false,
+            paid: 0,
+            startTime: 0,
+            remainingTime: 0,
+            tripEnded: false,
+            showSummary: false,
+            riderCancelled: false,
+            needsReset: false,
+        });
+    }
+
+    tripEnded(payload){
+        console.log('trip ended. heres the payload')
+        console.log(payload)
+        if (!this.state.tripEnded){
+            // rider cancelled early
+            this.setState({tripEnded: true, showSummary: true, riderCancelled: true, needsReset: true});
+        }
+        else {
+            // paid in full
+            this.setState({tripEnded: true, showSummary: true, needsReset: true});
+        }
+    }
+
+    cancelTrip(){
+        if (!this.props.cancelTrip){
+            return;
+        }
+        if (this.state.riderInformed && this.state.startTime != 0){
+            if(window.confirm('Are you sure you want to cancel? The rider will stop paying you if you do.')){
+                this.resetState();
+                this.props.cancelTrip();
+            }
+        }
+        else {
+            if (window.confirm('Are you sure you want to cancel? You will lose your deposit.')){
+                this.resetState();
+                this.props.cancelTrip();
+            }
+        }
     }
 
     onDriverPaid(payload){
         const {driverNumber, bills} = payload.returnValues;
-        console.log('Driver paid function')
-        console.log(driverNumber + '\n' + bills);
-        // TODO: check driver number
+        // dont accept a payment thats not mine
+        if (driverNumber != this.props.driverNumber){
+            return;
+        }
         const nextPayment = parseInt(bills);
-        this.setState(prevState => ({paid: prevState.paid += nextPayment}));
+        const tripEnded = nextPayment + this.state.paid >= this.props.tripRate;
+        this.setState(prevState => ({paid: prevState.paid += nextPayment, tripEnded}));
     }
 
     // render the spinner while waiting
@@ -61,8 +115,39 @@ class DriverProgressPage extends React.Component {
         this.setState({riderInformed: true})
     }
 
+    renderSummary(){
+        if (this.state.tripEnded) {
+            return (
+                <div className="summaryContainer">
+                    {
+                        !this.state.riderCancelled && 
+                        <div className="rideCompleteName">
+                            Ride Complete!
+                        </div>
+                    }
+                    {
+                        this.state.riderCancelled &&
+                        <div className="riderCancelledContainer">
+                            Rider cancelled
+                        </div>
+                    }
+                    <div className="amountPaid">
+                        Amount Paid: {this.state.paid}
+                    </div>
+                    <div className="backToHomePageButtonContainer">
+                        <SingleButton
+                            label="Back to login page"
+                            onClick={this.props.toLoginPage}
+                        ></SingleButton>
+                    </div>
+                </div>
+            )
+        }
+        
+    }
+
     renderDriverButton(){
-        if (this.state.riderInformed){
+        if (this.state.riderInformed || this.state.tripEnded){
             return (<div></div>)
         }
         return (
@@ -74,19 +159,19 @@ class DriverProgressPage extends React.Component {
     }
 
     renderDriverPayout(){
-        if (this.state.riderInformed){
+        if (this.state.riderInformed && !this.state.tripEnded){
             const amountPaid = this.state.paid == null ? 0 : this.state.paid;
             const percent = Math.round(amountPaid*100/this.props.tripRate);
             return (
-                <div className="progressBarContainer">
+                <div className="progressBarContainer"> 
                     <ProgressBar animated variant="warning" now={percent} label={`${percent}%`}/>
-                </div>
+                </div>                
             )
         }
     }
 
     renderTimeToArrival(){
-        if (this.state.riderInformed){
+        if (this.state.riderInformed || this.state.tripEnded){
             return (<div></div>)
         }
         const now = Math.round(new Date().getTime() / 1000);
@@ -96,8 +181,13 @@ class DriverProgressPage extends React.Component {
         const percent = timeRan * 100 / totalTime;
 
         return (
-            <div className="arrivalTimeProgressBarContainer">
-                <ProgressBar animated variant="warning" now={percent} label={`${this.state.remainingTime}s`}/>
+            <div>
+                <div className="progressBarExplanation">
+                    Time to arrive a rider's location: 
+                </div>
+                <div className="arrivalTimeProgressBarContainer">
+                    <ProgressBar animated variant="warning" now={percent} label={`${this.state.remainingTime}s`}/>
+                </div>
             </div>
         )
     }
@@ -109,29 +199,36 @@ class DriverProgressPage extends React.Component {
 
         if (this.state.startTime == 0){
             const startTime = Math.round(new Date().getTime() / 1000);
-            this.setState({startTime});
+            this.setState({startTime, needsReset: true});
         }
         else {
-            this.setState({remainingTime});
+            this.setState({remainingTime, needsReset: true});
         }
     }
 
 
     render() {
         if (!this.props.show){
+            if (this.state.needsReset){
+                this.resetState();
+            }
             return (<div className="empty"></div>)
         }
 
-        if (this.props.onDriverPaid && !this.localVals.startedListener) {
-            this.props.onDriverPaid(this.onDriverPaid);
+        if (!this.localVals.startedListener){
+            if (this.props.onDriverPaid){
+                this.props.onDriverPaid(this.onDriverPaid);
+            }
+            if (this.props.onTripEndedListener){
+                this.props.onTripEndedListener(this.tripEnded);
+            }
             this.localVals.startedListener = true;
         }
 
-        if (!this.state.riderInformed){
+        if (!this.state.riderInformed && !this.state.tripEnded){
             setTimeout(this.calcTimeToArrival, 1000);
         }
 
-       
         return(
             <div className='DriverProgressPage'>
                 <Jumbotron fluid>
@@ -147,6 +244,16 @@ class DriverProgressPage extends React.Component {
                     {this.renderTimeToArrival()}
                     {this.renderDriverButton()}
                     {this.renderDriverPayout()}
+                    {this.renderSummary()}
+                    {
+                        !this.state.tripEnded && 
+                        <div className="cancelButtonContainer">
+                            <SingleButton
+                                label="Cancel"
+                                onClick={this.cancelTrip}
+                            ></SingleButton>
+                        </div>
+                    }
                 </div>
             </div>
         )

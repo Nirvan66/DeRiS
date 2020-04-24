@@ -26,6 +26,9 @@ class RiderProgressPage extends React.Component {
             remainingTime: 0,
             outOfTime: false,
             paid: 0,
+            tripEnded: false,
+            driverCancelled: false,
+            needsReset: false,
         }
         this.localVals = {
             startedListener: false
@@ -38,11 +41,68 @@ class RiderProgressPage extends React.Component {
         this.startTrip = this.startTrip.bind(this);
         this.calcRemainingTime = this.calcRemainingTime.bind(this);
         this.renderWaitingProgressBar = this.renderWaitingProgressBar.bind(this);
+        this.cancelTrip = this.cancelTrip.bind(this);
+        this.tripEnded = this.tripEnded.bind(this);
+        this.renderSummary = this.renderSummary.bind(this);
+        this.resetState = this.resetState.bind(this);
+    }
+
+    resetState(){
+        this.localVals = {
+            startedListener: false
+        }
+        this.setState({
+            showSpinner: true,
+            rideAccepted: false,
+            driverArrived: false,
+            tripStarted: false,
+            timeToDriverArrival: 0,
+            startTime: 0,
+            remainingTime: 0,
+            outOfTime: false,
+            paid: 0,
+            tripEnded: false,
+            driverCancelled: false,
+            needsReset: false,
+        });
+    }
+
+    tripEnded(payload){
+        console.log('TRIP ENDED IN RIDER PAGE. PAYLOAD')
+        console.log(payload)
+        let driverCancelled = this.state.paid == this.props.tripRate ? false : true;
+        this.setState({
+            tripEnded: true,
+            driverCancelled
+        })
+    }
+
+    cancelTrip(){
+        if (!this.props.cancelTrip){
+            return;
+        }
+        if (this.state.rideAccepted){
+            // rider will lose money
+            if(window.confirm('Are you sure you want to cancel? You will lose any money paid to the driver so far.')){
+                this.props.cancelTrip();
+            }
+        }
+        else {
+            // rider will not lose money
+            if(window.confirm('Are you sure you want to cancel? You will not be penalized for cancelling at this time.')){
+                this.props.cancelTrip();
+            }
+        }
     }
 
     onRideAccepted(payload){
         const arrivalTime = parseFloat(payload.returnValues.arrivalTime);
         const incomingRiderNumber = payload.returnValues.riderNumber;
+        console.log('IN RIDE ACCEPTED')
+        console.log('incoming rider number')
+        console.log(incomingRiderNumber)
+        console.log('my rider number')
+        console.log(this.props.riderNumber)
         if (this.props.riderNumber != incomingRiderNumber){
             return;
         }
@@ -62,14 +122,25 @@ class RiderProgressPage extends React.Component {
         if (!this.props.payDriver){
             console.log('CANNOT PAY DRIVER NO FUNCTION TO DO SO')
         }
+        if (!this.state.tripStarted || this.state.tripEnded){
+            return;
+        }
         this.props.payDriver(amount, this.props.ethereumAddress);
+        let tripEnded = false;
+        console.log("TOTAL AMOUNT IN PAY DRIVER")
+        console.log(this.state.paid + amount)
+        if (this.state.paid + amount >= this.state.tripRate){
+            console.log("CHANGING TRIP ENDED")
+            tripEnded = true;
+        }
         this.setState(prevState => ({
-            paid: prevState.paid + amount
+            paid: prevState.paid + amount,
+            tripEnded,
         }));
     }
 
     startTrip(){
-        this.setState({tripStarted: true});
+        this.setState({tripStarted: true, needsReset: true});
         this.mockTrip();
     }
 
@@ -122,7 +193,33 @@ class RiderProgressPage extends React.Component {
         }
     }
 
+    renderSummary(){
+        if (this.state.tripEnded){
+            return (
+                <div className="summaryContainer">
+                    {this.state.driverCancelled && 
+                        <div className="driverCancelledContainer">
+                            Driver cancelled the trip
+                        </div>
+                    }
+                    <div className="amountPaidContainer">
+                        Amount Paid: {this.state.paid}
+                    </div>
+                    <div className="backToLoginButtonContainer">
+                        <SingleButton
+                            label="Back to login page"
+                            onClick={this.props.toLoginPage}
+                        ></SingleButton>
+                    </div>
+                </div>
+            )
+        }
+    }
+
     renderWaitingProgressBar(){
+        if (this.state.tripEnded){
+            return;
+        }
         const now = Math.round(new Date().getTime() / 1000);
         const timeRan = Math.round(this.state.timeToDriverArrival - now);
         const totalTime = Math.round(this.state.timeToDriverArrival - this.state.startTime);
@@ -139,6 +236,12 @@ class RiderProgressPage extends React.Component {
 
     // render the spinner while waiting
     renderSpinner(){
+        if (this.state.tripEnded){
+            return;
+        }
+        if (!this.state.needsReset){
+            this.setState({needsReset: true})
+        }
         if (this.state.showSpinner) {
             return (
                 <div className="rideSubittedWaiting">
@@ -181,17 +284,28 @@ class RiderProgressPage extends React.Component {
         const now = Math.round(new Date().getTime() / 1000);
         const remainingTime = this.state.timeToDriverArrival - now;
 
-        this.setState({remainingTime});
+        this.setState({remainingTime, needsReset: true});
     }
 
     render() {
         if (!this.props.show){
+            if (this.state.needsReset){
+                this.resetState();
+            }
             return (<div className="empty"></div>)
         }
 
-        if(this.props.onRideAcceptedListener && !this.localVals.startedListener && this.props.onDriverArrivedListener){
-            this.props.onRideAcceptedListener(this.onRideAccepted);
-            this.props.onDriverArrivedListener(this.onDriverArrived);
+        // Start all listeners
+        if(!this.localVals.startedListener){
+            if(this.props.onRideAcceptedListener){
+                this.props.onRideAcceptedListener(this.onRideAccepted);
+            }
+            if(this.props.onDriverArrivedListener){
+                this.props.onDriverArrivedListener(this.onDriverArrived);
+            }
+            if (this.props.onTripEndedListener){
+                this.props.onTripEndedListener(this.tripEnded);
+            }
             this.localVals.startedListener = true;
         }
 
@@ -212,6 +326,16 @@ class RiderProgressPage extends React.Component {
                 </div>
                 <div className='RiderProgressPageCenter'>
                     {this.renderSpinner()}
+                    {this.renderSummary()}
+                    {
+                        !this.state.tripEnded && 
+                        <div className="cancelButtonContainer">
+                            <SingleButton
+                                label="Cancel"
+                                onClick={this.cancelTrip}
+                            ></SingleButton>
+                        </div>
+                    }
                 </div>
             </div>
         )

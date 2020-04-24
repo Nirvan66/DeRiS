@@ -34,6 +34,7 @@ class RiderPage extends React.Component {
             endAddress: '',
             tripRate: '',
             directions: null,
+            needsReset: false,
         }
 
         this.onChange = this.onChange.bind(this);
@@ -41,7 +42,21 @@ class RiderPage extends React.Component {
         this.onCancelSubmit = this.onCancelSubmit.bind(this);
         this.onMapClick = this.onMapClick.bind(this);
         this.onRouteMade = this.onRouteMade.bind(this);
+        this.resetState = this.resetState.bind(this);
     }
+
+    resetState(){
+        this.setState({
+            startLocation: '',
+            endLocation: '',
+            startAddress: '',
+            endAddress: '',
+            tripRate: '',
+            directions: null,
+            needsReset: false,
+        });
+    }
+
     // keep tracking the user input to use for submission. need to discern by name
     onChange(event) {
         this.setState({[event.target.name]: event.target.value})
@@ -92,13 +107,15 @@ class RiderPage extends React.Component {
         if (!this.state.startLocation) {
             this.setState({
                 startLocation: payload.location,
-                startAddress: payload.address
+                startAddress: payload.address, 
+                needsReset: true,
             })
         }
         else {
             this.setState({
                 endLocation: payload.location,
-                endAddress: payload.address
+                endAddress: payload.address,
+                needsReset: true,
             })
         }
     }
@@ -109,11 +126,14 @@ class RiderPage extends React.Component {
         const directions = payload;
         const totalDistance = metersToMiles(totalRouteDistance(directions.routes[0]));
         const tripRate = totalDistance * weiPerMile;
-        this.setState({directions, tripRate})
+        this.setState({directions, tripRate, needsReset: true})
     }
 
     render() {
         if (!this.props.show){
+            if (this.state.needsReset){
+                this.resetState();
+            }
             return (<div className="empty"></div>)
         }
         const inputFieldOne = {label: 'Pick-up Location', value: this.state.startAddress};
@@ -124,13 +144,25 @@ class RiderPage extends React.Component {
 
         return (
             <div className="RiderPage">
-            <TwoButtonTwoTextSubmission
-                inputFieldOne={inputFieldOne}
-                inputFieldTwo={inputFieldTwo}
-                primaryButton={primaryButton}
-                secondaryButton={secondaryButton}
-                onChange={this.onChange}
-            ></TwoButtonTwoTextSubmission>
+                <table classname="RideInfoContainer">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div className="rateContainer">Rate: {Math.round(this.state.tripRate)}</div>
+                            </td>
+                            <td>
+                                <TwoButtonTwoTextSubmission
+                                    inputFieldOne={inputFieldOne}
+                                    inputFieldTwo={inputFieldTwo}
+                                    primaryButton={primaryButton}
+                                    secondaryButton={secondaryButton}
+                                    onChange={this.onChange}
+                                ></TwoButtonTwoTextSubmission>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            
             <MapLoader
                 googleMapURL={"https://maps.googleapis.com/maps/api/js?key=" + API_KEY }
                 loadingElement={<div style={{ height: `100%`, width: '100%' }} />}
@@ -139,7 +171,6 @@ class RiderPage extends React.Component {
                 directions={directions}
                 addRoute={true}
             />
-            <div className="rateContainer"><h2>Rate: </h2>{this.state.tripRate}</div>
             </div>
         )
     }
