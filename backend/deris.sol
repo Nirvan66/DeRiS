@@ -140,6 +140,7 @@ contract Deris{
         require(users[msg.sender].isUser==true, "Need to be a user to inform rider");
         require(users[msg.sender].state==Status.DRIVER, "User needs to be in driver mode to inform rider");
         require(users[msg.sender].currPairing != address(0), "Driver needs to have an assigned rider to inform");
+        require(now<=users[msg.sender].arrivalTime, "You are too late to arrive");
         int dist = (loc[0] - users[users[msg.sender].currPairing].pickup.lat) * (loc[0] - users[users[msg.sender].currPairing].pickup.lat) 
                   + (loc[1] - users[users[msg.sender].currPairing].pickup.long) * (loc[1] - users[users[msg.sender].currPairing].pickup.long);
         require(dist<=13623770, "You are more that 0.2 miles away from the rider");
@@ -190,7 +191,7 @@ contract Deris{
         require(users[msg.sender].state != Status.INACTIVE, "Need to be an active user to complete ride");
         if(users[msg.sender].inProgress == true){
             payable(msg.sender).transfer(msg.value);
-            emit undone(users[msg.sender].number, msg.value);
+            emit undone(users[msg.sender].number, 0);
             reset(msg.sender);
         }
         else{
