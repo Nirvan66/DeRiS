@@ -9,7 +9,6 @@ import { milesToMeters, metersToMiles, getDistance, getReverseGeocodingData, get
 
 const API_KEY = 'AIzaSyChykMQlbWKcQy-qixkVnXCrGVoy-vdlM4'
 const MapLoader = withScriptjs(Map);
-const REFRESH_TIME = 10; //seconds
 
 /**
  * The module for the driver page
@@ -349,7 +348,6 @@ class DriverPage extends React.Component {
         if (!this.localVals.requestedRides && this.props.getAvailableRides && this.props.ethereumAddress){
             this.localVals.requestedRides = true;
             this.refreshJobList();
-            setInterval(this.refreshJobList, REFRESH_TIME * 1000);
         }
 
         return (
@@ -384,10 +382,18 @@ class DriverPage extends React.Component {
                     center={centerMapOn}
                 />
                 {this.renderJobButtons()}
-                <SingleButton
-                    onClick={this.onCancelSubmit}
-                    label='Cancel'
-                ></SingleButton>
+                <div className='refreshButtonContainer'>
+                    <SingleButton
+                        onClick={this.refreshJobList}
+                        label='Refresh Jobs'
+                    ></SingleButton>
+                </div>
+                <div className='cancelButtonContainer'>
+                    <SingleButton
+                        onClick={this.onCancelSubmit}
+                        label='Cancel'
+                    ></SingleButton>
+                </div>
             </div>
         )
     }

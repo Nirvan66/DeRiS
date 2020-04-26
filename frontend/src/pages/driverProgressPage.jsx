@@ -57,8 +57,9 @@ class DriverProgressPage extends React.Component {
     }
 
     tripEnded(payload){
-        console.log('trip ended. heres the payload')
-        console.log(payload)
+        if (payload && payload.returnValues.pairNumber && payload.returnValues.pairNumber != this.props.driverNumber){
+            return;
+        }
         if (!this.state.tripEnded){
             // rider cancelled early
             this.setState({tripEnded: true, showSummary: true, riderCancelled: true, needsReset: true});
@@ -69,11 +70,14 @@ class DriverProgressPage extends React.Component {
         }
     }
 
-    cancelTrip(){
+    cancelTrip(payload){
         if (!this.props.cancelTrip){
             return;
         }
-        if (this.state.riderInformed && this.state.startTime != 0){
+        if (payload && payload.fromTimeOut){
+            this.props.cancelTrip();
+        }
+        else if (this.state.riderInformed && this.state.startTime != 0){
             if(window.confirm('Are you sure you want to cancel? The rider will stop paying you if you do.')){
                 this.resetState();
                 this.props.cancelTrip();
@@ -132,7 +136,7 @@ class DriverProgressPage extends React.Component {
                         </div>
                     }
                     <div className="amountPaid">
-                        Amount Paid: {this.state.paid}
+                        Amount Recieved: {this.state.paid}
                     </div>
                     <div className="backToHomePageButtonContainer">
                         <SingleButton
@@ -163,9 +167,13 @@ class DriverProgressPage extends React.Component {
             const amountPaid = this.state.paid == null ? 0 : this.state.paid;
             const percent = Math.round(amountPaid*100/this.props.tripRate);
             return (
-                <div className="progressBarContainer"> 
-                    <ProgressBar animated variant="warning" now={percent} label={`${percent}%`}/>
-                </div>                
+                <div className="tripProgressContainer">
+                    Trip Progress:
+                    <div className="progressBarContainer"> 
+                        <ProgressBar animated variant="warning" now={percent} label={`${percent}%`}/>
+                    </div>  
+                </div>
+                              
             )
         }
     }
@@ -188,6 +196,11 @@ class DriverProgressPage extends React.Component {
                 <div className="arrivalTimeProgressBarContainer">
                     <ProgressBar animated variant="warning" now={percent} label={`${this.state.remainingTime}s`}/>
                 </div>
+                {this.state.remainingTime <= 60 && 
+                    <div className="timeoutWarning">
+                        You have {this.state.remainingTime}s to arrive or you will be penalized and returned to the home page
+                    </div>
+                }
             </div>
         )
     }
@@ -195,9 +208,10 @@ class DriverProgressPage extends React.Component {
     calcTimeToArrival(){
         const now = Math.round(new Date().getTime() / 1000);
         const remainingTime = this.props.arrivalTime - now;
-        
-
-        if (this.state.startTime == 0){
+        if (remainingTime <= 0){
+            this.cancelTrip({fromTimeOut: true});
+        }
+        else if (this.state.startTime == 0){
             const startTime = Math.round(new Date().getTime() / 1000);
             this.setState({startTime, needsReset: true});
         }

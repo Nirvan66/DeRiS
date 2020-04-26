@@ -70,11 +70,13 @@ class RiderProgressPage extends React.Component {
     tripEnded(payload){
         console.log('TRIP ENDED IN RIDER PAGE. PAYLOAD')
         console.log(payload)
-        let driverCancelled = this.state.paid == this.props.tripRate ? false : true;
-        this.setState({
-            tripEnded: true,
-            driverCancelled
-        })
+        if (payload && payload.returnValues.pairNumber && payload.returnValues.pairNumber == this.props.riderNumber){
+            let driverCancelled = this.state.paid == this.props.tripRate ? false : true;
+            this.setState({
+                tripEnded: true,
+                driverCancelled
+            })
+        }
     }
 
     cancelTrip(){
@@ -97,13 +99,10 @@ class RiderProgressPage extends React.Component {
 
     onRideAccepted(payload){
         const arrivalTime = parseFloat(payload.returnValues.arrivalTime);
-        const incomingRiderNumber = payload.returnValues.riderNumber;
-        console.log('IN RIDE ACCEPTED')
-        console.log('incoming rider number')
-        console.log(incomingRiderNumber)
-        console.log('my rider number')
-        console.log(this.props.riderNumber)
+        const incomingRiderNumber = parseInt(payload.returnValues.riderNumber);
+ 
         if (this.props.riderNumber != incomingRiderNumber){
+            console.log('Incoming rider number ' + incomingRiderNumber + ' does not match my rider number ' + this.props.riderNumber)
             return;
         }
         let startTime = Math.round(new Date().getTime() / 1000); // timestamp in seconds
@@ -185,12 +184,15 @@ class RiderProgressPage extends React.Component {
             runningPayout += thisPayout;
               
         }
-
         // check to see if there is any remaining money to pay out
-        if (totalPayout - runningPayout > 0){
-            // pay the difference
-            this.payDriver(totalPayout - runningPayout)
-        }
+        setDelay(() => {
+            if (totalPayout - runningPayout > 0){
+                // pay the difference
+                this.payDriver(totalPayout - runningPayout)
+            }
+        }, totalTripDistance * mockTimePerMile * 1000)
+
+        
     }
 
     renderSummary(){
@@ -203,7 +205,8 @@ class RiderProgressPage extends React.Component {
                         </div>
                     }
                     <div className="amountPaidContainer">
-                        Amount Paid: {this.state.paid}
+                        <p>Ride Complete!</p>
+                        <p>Trip cost: {this.state.paid}</p>
                     </div>
                     <div className="backToLoginButtonContainer">
                         <SingleButton
@@ -230,6 +233,7 @@ class RiderProgressPage extends React.Component {
             <div className="progressBarContainer">
                 <div><b>Time till driver arrives:</b></div>
                 <ProgressBar animated variant="warning" now={percent} label={`${this.state.remainingTime}s`}></ProgressBar>
+                <img className="spinner" src={rideAcceptedSpinner} alt="Loading..."></img>
             </div>
         )
     }
@@ -245,8 +249,8 @@ class RiderProgressPage extends React.Component {
         if (this.state.showSpinner) {
             return (
                 <div className="rideSubittedWaiting">
-                    <div><b>Ride Submitted! Waiting for a driver to accept your trip...</b></div>
                     <img className="spinner" src={spinner} alt="Loading..."></img>
+                    <div><b>Ride Submitted! Waiting for a driver to accept your trip...</b></div>
                 </div>
             )
         }
@@ -273,9 +277,13 @@ class RiderProgressPage extends React.Component {
         else if (this.state.tripStarted){
             const percent = parseInt(this.state.paid * 100/this.props.tripRate);
             return (
-                <div className="progressBarContainer">
-                    <ProgressBar animated variant="warning" now={percent} label={`${percent}%`}/>
+                <div className="tripProgressContainer">
+                    Trip Progress:
+                    <div className="progressBarContainer">
+                        <ProgressBar animated variant="warning" now={percent} label={`${percent}%`}/>
+                    </div>
                 </div>
+                
             )
         }
     }
@@ -325,17 +333,32 @@ class RiderProgressPage extends React.Component {
                     </div>
                 </div>
                 <div className='RiderProgressPageCenter'>
-                    {this.renderSpinner()}
-                    {this.renderSummary()}
-                    {
-                        !this.state.tripEnded && 
-                        <div className="cancelButtonContainer">
-                            <SingleButton
-                                label="Cancel"
-                                onClick={this.cancelTrip}
-                            ></SingleButton>
-                        </div>
-                    }
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    {this.renderSpinner()}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    {this.renderSummary()}
+                                </td>
+                            </tr>
+                            <tr>
+                                {
+                                    !this.state.tripEnded && 
+                                    <div className="cancelButtonContainer">
+                                        <SingleButton
+                                            label="Cancel"
+                                            onClick={this.cancelTrip}
+                                        ></SingleButton>
+                                    </div>
+                                }
+                            </tr>
+                        </tbody>
+                    </table>
+                    
                 </div>
             </div>
         )

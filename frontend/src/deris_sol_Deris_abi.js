@@ -128,6 +128,12 @@ export const derisInterface = [
 			{
 				"indexed": false,
 				"internalType": "uint256",
+				"name": "pairNumber",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
 				"name": "cancelFee",
 				"type": "uint256"
 			}

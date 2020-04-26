@@ -22,12 +22,16 @@ const NO_BLOCKCHAIN_DEV = false;
 const FORGIVENESS_TIME = 60;
 
 class App extends Component {
-  componentWillMount() {
-    this.loadBlockchainData()
+  async componentWillMount() {
+    await this.loadBlockchainData()
+    window.onbeforeunload = this.onPageRefresh;
+  }
 
-    window.onbeforeunload = () => {
-      resetUser(this.state.ethereumAddress);
-    };
+  async onPageRefresh(){
+    let cancelFee;
+    this.state.onTripEndedListener(e => cancelFee = e.returnValues.cancelFee);
+    await resetUser(this.state.ethereumAddress);
+    alert('You have lost ' + cancelFee + ' amount of money for cancelling your trip.')
   }
 
   async loadBlockchainData() {
@@ -36,7 +40,7 @@ class App extends Component {
     const portNumber = '7545';
     
     // the blockchain address
-    const address = '0xB2bc535Ea7Cbe985e45ad3990ffb763a65E7bC98';
+    const address = '0xa9346caCe9F4CF2B5A9a72cc0847838C0f708fE9';
 
     const blockchainFunctions = await initBlockchain(portNumber, address, derisInterface);
     const getAvailableRidesListener = cb => blockchainFunctions.events.RiderDetails({}).on('data', (event) => cb(event));
@@ -85,6 +89,7 @@ class App extends Component {
     this.onDriverCancels = this.onDriverCancels.bind(this);
     this.toLoginPage = this.toLoginPage.bind(this);
     this.toDriverPage = this.toDriverPage.bind(this);
+    this.onPageRefresh = this.onPageRefresh.bind(this);
   }
 
   /////////////////////////////////////////////////////////////////////////
