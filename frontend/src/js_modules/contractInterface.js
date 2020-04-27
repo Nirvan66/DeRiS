@@ -31,7 +31,7 @@ function __blockifyCoords(loc){
  * @param {Object} abiFile          Object containing the abi
  */
 async function initBlockchain(portNumber, contractAddress, abiInterface) {
-    web3 = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:"+portNumber));
+    web3 = new Web3(new Web3.providers.WebsocketProvider("ws://192.168.0.16:"+portNumber));
 
     contract = new web3.eth.Contract(abiInterface);
     contract.options.address = contractAddress;
@@ -60,14 +60,20 @@ function setDriver(ethereumAddress){
  * @param {Object} endLoc           object containing both .lat and .lng attributes. These attributes should be strings, not callables
  * @param {Number} rideCost         number cost of the trip from startLoc to endLoc
  * @param {String} ethereumAddress  string with the ethereum address of the rider
+ * 
+ * @returns {Promise}
  */
 function requestRide(startLoc, endLoc, rideCost, ethereumAddress){
     const startLatLng = __blockifyCoords(startLoc);
     const endLatLng = __blockifyCoords(endLoc);
 
-    contract.methods.rideRequest(startLatLng, endLatLng, rideCost).send({from: ethereumAddress, gas: gasLimit}).then((value) => {
-        console.log(value)
+    return new Promise((resolve, reject) => {
+        contract.methods.rideRequest(startLatLng, endLatLng, rideCost).send({from: ethereumAddress, gas: gasLimit}).then((value) => {
+            console.log(value)
+            resolve(value);
+        })
     })
+    
 }
 
 /**

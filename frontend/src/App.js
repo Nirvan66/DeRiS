@@ -40,7 +40,7 @@ class App extends Component {
     const portNumber = '7545';
     
     // the blockchain address
-    const address = '0xa9346caCe9F4CF2B5A9a72cc0847838C0f708fE9';
+    const address = '0xDC825F515Dd94DFAcB9a4750E73F33D33E48337b';
 
     const blockchainFunctions = await initBlockchain(portNumber, address, derisInterface);
     const getAvailableRidesListener = cb => blockchainFunctions.events.RiderDetails({}).on('data', (event) => cb(event));
@@ -119,27 +119,29 @@ class App extends Component {
       const startLoc = {lat: payload.startLocation.lat().toString(), lng: payload.startLocation.lng().toString()};
       const endLoc = {lat: payload.endLocation.lat(), lng: payload.endLocation.lng()};
       const tripRate =  Math.round(payload.tripRate);
-      requestRide(startLoc, endLoc, tripRate, this.state.ethereumAddress);
+      await requestRide(startLoc, endLoc, tripRate, this.state.ethereumAddress);
+
       riderNumber = await getMyRiderNumber(this.state.ethereumAddress);
+      this.setState({
+        riderStartLocation: payload.startLocation,
+        riderEndLocation: payload.endLocation,
+        pickupAddress: payload.startAddress,
+        dropOffAddress: payload.endAddress,
+        isRiderPage: false,
+        isRiderProgressPage: isContinuing,
+        isLandingPage: !isContinuing, 
+        riderNumber: riderNumber,
+        tripRate: Math.round(payload.tripRate),
+        directions: payload.directions,
+      });
     }
 
     if (!isContinuing){
       resetUser(this.state.ethereumAddress);
     }
-
-    this.setState({
-      riderStartLocation: payload.startLocation,
-      riderEndLocation: payload.endLocation,
-      pickupAddress: payload.startAddress,
-      dropOffAddress: payload.endAddress,
-      isRiderPage: false,
-      isRiderProgressPage: isContinuing,
-      isLandingPage: !isContinuing, 
-      riderNumber: riderNumber,
-      tripRate: Math.round(payload.tripRate),
-      directions: payload.directions,
-    });
   }
+
+    
 
   async onDriverPageSubmit(payload) {
     const isCancel = payload.isCancel;
