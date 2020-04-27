@@ -62,7 +62,8 @@ class DriverProgressPage extends React.Component {
         }
         if (!this.state.tripEnded){
             // rider cancelled early
-            this.setState({tripEnded: true, showSummary: true, riderCancelled: true, needsReset: true});
+            const cancelFee = payload.returnValues.cancelFee ? payload.returnValues.cancelFee : 0;
+            this.setState({tripEnded: true, showSummary: true, riderCancelled: true, needsReset: true, paid: cancelFee});
         }
         else {
             // paid in full

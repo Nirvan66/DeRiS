@@ -29,6 +29,7 @@ class RiderProgressPage extends React.Component {
             tripEnded: false,
             driverCancelled: false,
             needsReset: false,
+            feeFromDriverCancel: 0,
         }
         this.localVals = {
             startedListener: false
@@ -72,9 +73,11 @@ class RiderProgressPage extends React.Component {
         console.log(payload)
         if (payload && payload.returnValues.pairNumber && payload.returnValues.pairNumber == this.props.riderNumber){
             let driverCancelled = this.state.paid == this.props.tripRate ? false : true;
+            const cancelFee = payload.returnValues.cancelFee ? payload.returnValues.cancelFee : 0;
             this.setState({
                 tripEnded: true,
-                driverCancelled
+                driverCancelled,
+                feeFromDriverCancel: cancelFee,
             })
         }
     }
@@ -201,13 +204,16 @@ class RiderProgressPage extends React.Component {
                 <div className="summaryContainer">
                     {this.state.driverCancelled && 
                         <div className="driverCancelledContainer">
-                            Driver cancelled the trip
+                            <p>Driver cancelled the trip.</p>
+                            <p>Fee recieved from cancellation: {this.state.feeFromDriverCancel}</p>
                         </div>
                     }
-                    <div className="amountPaidContainer">
-                        <p>Ride Complete!</p>
-                        <p>Trip cost: {this.state.paid}</p>
-                    </div>
+                    {!this.state.driverCancelled &&
+                        <div className="amountPaidContainer">
+                            <p>Ride Complete!</p>
+                            <p>Trip cost: {this.state.paid}</p>
+                        </div>
+                    }
                     <div className="backToLoginButtonContainer">
                         <SingleButton
                             label="Back to login page"
