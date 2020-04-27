@@ -168,8 +168,8 @@ contract Deris{
         if (users[msg.sender].paid == users[msg.sender].escrow){
             emit undone(users[msg.sender].number, users[users[msg.sender].currPairing].number, 0);
             emit undone(users[users[msg.sender].currPairing].number, users[msg.sender].number, 0);
-            reset(msg.sender);
             reset(users[msg.sender].currPairing);
+            reset(msg.sender);
         }
     }
     
