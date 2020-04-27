@@ -71,7 +71,9 @@ class RiderProgressPage extends React.Component {
     tripEnded(payload){
         console.log('TRIP ENDED IN RIDER PAGE. PAYLOAD')
         console.log(payload)
-        if (payload && payload.returnValues.pairNumber && payload.returnValues.pairNumber == this.props.riderNumber){
+        if (payload && payload.returnValues.pairNumber 
+            && (payload.returnValues.pairNumber == this.props.riderNumber
+                || (payload.returnValues.usrNumber == this.props.riderNumber &&  this.state.paid == this.props.tripRate))){
             let driverCancelled = this.state.paid == this.props.tripRate ? false : true;
             const cancelFee = payload.returnValues.cancelFee ? payload.returnValues.cancelFee : 0;
             this.setState({
