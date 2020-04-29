@@ -247,7 +247,10 @@ class DriverPage extends React.Component {
 
     // refresh and look for more jobs
     refreshJobList(){
+        const startTime = new Date().getTime();
         this.props.getAvailableRides(this.props.ethereumAddress);
+        console.log('get available rides time') 
+        console.log(new Date().getTime() - startTime)
     }
 
     // only take the jobs that are within my radius

@@ -20,6 +20,7 @@ import {
 
 const NO_BLOCKCHAIN_DEV = false;
 const FORGIVENESS_TIME = 60;
+const depositRate = 10; // percentage
 
 class App extends Component {
   async componentWillMount() {
@@ -28,9 +29,8 @@ class App extends Component {
   }
 
   async onPageRefresh(){
-    let cancelFee;
-    this.state.onTripEndedListener(e => cancelFee = e.returnValues.cancelFee);
-    await resetUser(this.state.ethereumAddress);
+    let cancelFee = this.state.tripRate ? this.state.tripRate / depositRate : 0;
+    await resetUser(this.state.ethereumAddress, parseInt(cancelFee));
     alert('You have lost ' + cancelFee + ' amount of money for cancelling your trip.')
   }
 
@@ -40,7 +40,7 @@ class App extends Component {
     const portNumber = '7545';
     
     // the blockchain address
-    const address = '0xC203b3D6430697c1d053f43D762802F68768daAC';
+    const address = '0xeE1c40d0727E940Bf83588B6ABF2d73F2FC3336a';
 
     const blockchainFunctions = await initBlockchain(portNumber, address, derisInterface);
     const getAvailableRidesListener = cb => blockchainFunctions.events.RiderDetails({}).on('data', (event) => cb(event));
@@ -99,7 +99,10 @@ class App extends Component {
     const isRiderPage = payload.role == 'rider';
     if (!isRiderPage && !NO_BLOCKCHAIN_DEV){
       console.log('Setting driver')
+      const startTime = new Date().getTime(); // ms
       await setDriver(payload.ethereumAddress);
+      console.log('set driver time') 
+      console.log(new Date().getTime() - startTime);
     }
 
     this.setState({
@@ -119,7 +122,10 @@ class App extends Component {
       const startLoc = {lat: payload.startLocation.lat().toString(), lng: payload.startLocation.lng().toString()};
       const endLoc = {lat: payload.endLocation.lat(), lng: payload.endLocation.lng()};
       const tripRate =  Math.round(payload.tripRate);
+      const startTime =  new Date().getTime(); 
       await requestRide(startLoc, endLoc, tripRate, this.state.ethereumAddress);
+      console.log('Time to request ride') 
+      console.log(new Date().getTime() - startTime);
 
       riderNumber = await getMyRiderNumber(this.state.ethereumAddress);
       this.setState({
@@ -137,7 +143,10 @@ class App extends Component {
     }
 
     if (!isContinuing){
-      resetUser(this.state.ethereumAddress);
+      const startTime = new Date().getTime();
+      resetUser(this.state.ethereumAddress, 0);
+      console.log('time for reset user') 
+      console.log(new Date().getTime() - startTime);
     }
   }
 
@@ -148,7 +157,7 @@ class App extends Component {
     let driverNumber;
     let arrivalTime;
     if (isCancel){
-      resetUser(this.state.ethereumAddress);
+      resetUser(this.state.ethereumAddress, 0);
       this.setState({
         isDriverPage: false,
         isLandingPage: true,
@@ -156,8 +165,14 @@ class App extends Component {
       return;
     }
     else {
+      const startTime = new Date().getTime();
       acceptJob(parseInt(payload.jobInfo.riderNumber), payload.arrivalTime + FORGIVENESS_TIME, this.state.ethereumAddress);
+      console.log('time for accept job') 
+      console.log(new Date().getTime() - startTime);
+      const newStartTime = new Date().getTime();
       driverNumber = await getMyRiderNumber(this.state.ethereumAddress);
+      console.log('time for get number')
+      console.log(new Date().getTime() - newStartTime)
       arrivalTime = Math.round(new Date().getTime() / 1000) + payload.arrivalTime + FORGIVENESS_TIME;
     }
 
@@ -180,7 +195,8 @@ class App extends Component {
 
   // called when the rider cancels a ride 
   async onRiderCancels(payload) {
-    await resetUser(this.state.ethereumAddress);
+    let cancelFee = this.state.tripRate ? this.state.tripRate / depositRate: 0;
+    await resetUser(this.state.ethereumAddress, Math.round(cancelFee));
     this.setState({
       ethereumAddress: '',
       isLandingPage: true,
@@ -190,7 +206,8 @@ class App extends Component {
 
   // called when the driver cancels a ride
   async onDriverCancels(payload) {
-    await resetUser(this.state.ethereumAddress);
+    let cancelFee = this.state.tripRate ? this.state.tripRate / depositRate : 0;
+    await resetUser(this.state.ethereumAddress, Math.round(cancelFee));
     this.setState({
       ethereumAddress: '',
       isLandingPage: true,
@@ -199,7 +216,7 @@ class App extends Component {
   }
 
   async toDriverPage(){
-    await resetUser(this.state.ethereumAddress);
+    await resetUser(this.state.ethereumAddress, 0);
     await setDriver(this.state.ethereumAddress);
     this.setState({
       isDriverProgressPage: false,
@@ -208,7 +225,7 @@ class App extends Component {
   }
 
   async toLoginPage(){
-    await resetUser(this.state.ethereumAddress);
+    await resetUser(this.state.ethereumAddress, 0);
     this.setState({
       ethereumAddress : '',
       role: '',

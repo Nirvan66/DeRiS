@@ -129,7 +129,10 @@ class RiderProgressPage extends React.Component {
         if (!this.state.tripStarted || this.state.tripEnded){
             return;
         }
+        const startTime = new Date().getTime();
         this.props.payDriver(amount, this.props.ethereumAddress);
+        console.log('time for pay driver') 
+        console.log(new Date().getTime() - startTime)
         let tripEnded = false;
         console.log("TOTAL AMOUNT IN PAY DRIVER")
         console.log(this.state.paid + amount)

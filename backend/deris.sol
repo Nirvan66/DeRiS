@@ -188,6 +188,7 @@ contract Deris{
         //885999999991808
         require(users[msg.sender].isUser == true, "Need to be a user to complete ride");
         require(users[msg.sender].state != Status.INACTIVE, "Need to be an active user to complete ride");
+        require(msg.value>=0, "Ether need to be sent to reset");
         if(users[msg.sender].inProgress == true){
             payable(msg.sender).transfer(msg.value);
             emit undone(users[msg.sender].number, users[users[msg.sender].currPairing].number, 0);

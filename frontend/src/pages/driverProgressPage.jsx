@@ -115,8 +115,10 @@ class DriverProgressPage extends React.Component {
             lat: this.props.riderPickupLocation.lat(),
             lng: this.props.riderPickupLocation.lng(),
         }
-    
+        const startTime = new Date().getTime();
         this.props.informRider(dummyLoc, this.props.ethereumAddress);
+        console.log('time to inform rider')
+        console.log(new Date().getTime() - startTime)
         this.setState({riderInformed: true})
     }
 

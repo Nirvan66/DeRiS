@@ -31,7 +31,7 @@ function __blockifyCoords(loc){
  * @param {Object} abiFile          Object containing the abi
  */
 async function initBlockchain(portNumber, contractAddress, abiInterface) {
-    web3 = new Web3(new Web3.providers.WebsocketProvider("ws://192.168.0.16:"+portNumber));
+    web3 = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:"+portNumber));
 
     contract = new web3.eth.Contract(abiInterface);
     contract.options.address = contractAddress;
@@ -110,10 +110,12 @@ function getCurrentRides(ethereumAddress){
  * Resets a user so they are not 1. matched to anyone 2. locations are wiped
  * 
  * @param {String} ethereumAddress string with the ethereum address of the user to reset 
+ * @param {Int} feeAmount           integer value in wei to cost the user by reseting user
  */
-function resetUser(ethereumAddress){
+function resetUser(ethereumAddress, feeAmount){
+    feeAmount = parseInt(feeAmount).toString();
     return new Promise((resolve, reject) => {
-        contract.methods.userReset().send({from: ethereumAddress, gas: gasLimit}).then((value) => {
+        contract.methods.userReset().send({from: ethereumAddress, gas: gasLimit, value: web3.utils.toWei(feeAmount, 'wei')}).then((value) => {
             console.log('RESET THE USER');
             resolve();
         });
