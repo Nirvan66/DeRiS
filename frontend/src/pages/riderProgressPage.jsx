@@ -10,8 +10,8 @@ import {metersToMiles} from '../js_modules/googleMapUtils'
 const mockTimePerMile = 10; // every mile takes x amount of seconds
 
 /**
- * 
- * @param {object} props 
+ *
+ * @param {object} props
  */
 class RiderProgressPage extends React.Component {
     constructor (props) {
@@ -71,7 +71,7 @@ class RiderProgressPage extends React.Component {
     tripEnded(payload){
         console.log('TRIP ENDED IN RIDER PAGE. PAYLOAD')
         console.log(payload)
-        if (payload && payload.returnValues.pairNumber 
+        if (payload && payload.returnValues.pairNumber
             && (payload.returnValues.pairNumber == this.props.riderNumber
                 || (payload.returnValues.usrNumber == this.props.riderNumber &&  this.state.paid == this.props.tripRate))){
             let driverCancelled = this.state.paid == this.props.tripRate ? false : true;
@@ -105,13 +105,13 @@ class RiderProgressPage extends React.Component {
     onRideAccepted(payload){
         const arrivalTime = parseFloat(payload.returnValues.arrivalTime);
         const incomingRiderNumber = parseInt(payload.returnValues.riderNumber);
- 
+
         if (this.props.riderNumber != incomingRiderNumber){
             console.log('Incoming rider number ' + incomingRiderNumber + ' does not match my rider number ' + this.props.riderNumber)
             return;
         }
         let startTime = Math.round(new Date().getTime() / 1000); // timestamp in seconds
-        let timeToDriverArrival = parseInt(arrivalTime); // seconds 
+        let timeToDriverArrival = parseInt(arrivalTime); // seconds
         this.setState({showSpinner: false, rideAccepted: true, timeToDriverArrival, startTime})
     }
 
@@ -131,7 +131,7 @@ class RiderProgressPage extends React.Component {
         }
         const startTime = new Date().getTime();
         this.props.payDriver(amount, this.props.ethereumAddress);
-        console.log('time for pay driver') 
+        console.log('time for pay driver')
         console.log(new Date().getTime() - startTime)
         let tripEnded = false;
         console.log("TOTAL AMOUNT IN PAY DRIVER")
@@ -162,7 +162,7 @@ class RiderProgressPage extends React.Component {
         for (let leg of route. steps){
             totalTripDistance += leg.distance.value;
         }
-        
+
         const totalPayout = this.props.tripRate;
         let runningPayout = 0;
 
@@ -173,10 +173,10 @@ class RiderProgressPage extends React.Component {
                 func(value)
             }, time)
         }
-        
+
         for (let leg of route.steps){
             const sleepTime = Math.round(metersToMiles(leg.distance.value) * mockTimePerMile * 1000);// ms to seconds
-          
+
             console.log(leg)
             let percentTraveled =  (leg.distance.value / totalTripDistance);
             let thisPayout = Math.floor(totalPayout * percentTraveled);
@@ -190,7 +190,7 @@ class RiderProgressPage extends React.Component {
                 setDelay(this.payDriver, thisPayout, sleepTime)
             }
             runningPayout += thisPayout;
-              
+
         }
         // check to see if there is any remaining money to pay out
         setDelay(() => {
@@ -200,14 +200,14 @@ class RiderProgressPage extends React.Component {
             }
         }, totalTripDistance * mockTimePerMile * 1000)
 
-        
+
     }
 
     renderSummary(){
         if (this.state.tripEnded){
             return (
                 <div className="summaryContainer">
-                    {this.state.driverCancelled && 
+                    {this.state.driverCancelled &&
                         <div className="driverCancelledContainer">
                             <p>Driver cancelled the trip.</p>
                             <p>Fee recieved from cancellation: {this.state.feeFromDriverCancel}</p>
@@ -237,7 +237,7 @@ class RiderProgressPage extends React.Component {
         const now = Math.round(new Date().getTime() / 1000);
         const timeRan = Math.round(this.state.timeToDriverArrival - now);
         const totalTime = Math.round(this.state.timeToDriverArrival - this.state.startTime);
-        
+
         const percent = timeRan * 100 / totalTime;
 
         return (
@@ -271,7 +271,7 @@ class RiderProgressPage extends React.Component {
                     {this.renderWaitingProgressBar()}
                 </div>
             )
-            
+
         }
         else if (this.state.driverArrived && !this.state.tripStarted){
             return (
@@ -294,7 +294,7 @@ class RiderProgressPage extends React.Component {
                         <ProgressBar animated variant="warning" now={percent} label={`${percent}%`}/>
                     </div>
                 </div>
-                
+
             )
         }
     }
@@ -347,6 +347,17 @@ class RiderProgressPage extends React.Component {
                     <table>
                         <tbody>
                             <tr>
+                            <tr>
+                                {
+                                    !this.state.tripEnded &&
+                                    <div className="cancelButtonContainer">
+                                        <SingleButton
+                                            label="Cancel"
+                                            onClick={this.cancelTrip}
+                                        ></SingleButton>
+                                    </div>
+                                }
+                            </tr>
                                 <td>
                                     {this.renderSpinner()}
                                 </td>
@@ -356,20 +367,9 @@ class RiderProgressPage extends React.Component {
                                     {this.renderSummary()}
                                 </td>
                             </tr>
-                            <tr>
-                                {
-                                    !this.state.tripEnded && 
-                                    <div className="cancelButtonContainer">
-                                        <SingleButton
-                                            label="Cancel"
-                                            onClick={this.cancelTrip}
-                                        ></SingleButton>
-                                    </div>
-                                }
-                            </tr>
                         </tbody>
                     </table>
-                    
+
                 </div>
             </div>
         )

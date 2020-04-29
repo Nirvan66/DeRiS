@@ -6,9 +6,9 @@ import DriverPage from './pages/driverPage.jsx'
 import RiderProgressPage from './pages/riderProgressPage.jsx'
 import DriverProgressPage from './pages/driverProgressPage.jsx'
 import {derisInterface} from './deris_sol_Deris_abi'
-import { 
+import {
   initBlockchain,
-  setDriver, 
+  setDriver,
   requestRide,
   getCurrentRides,
   resetUser,
@@ -38,9 +38,9 @@ class App extends Component {
     if (NO_BLOCKCHAIN_DEV) { return; }
 
     const portNumber = '7545';
-    
+
     // the blockchain address
-    const address = '0xeE1c40d0727E940Bf83588B6ABF2d73F2FC3336a';
+    const address = '0xDC825F515Dd94DFAcB9a4750E73F33D33E48337b';
 
     const blockchainFunctions = await initBlockchain(portNumber, address, derisInterface);
     const getAvailableRidesListener = cb => blockchainFunctions.events.RiderDetails({}).on('data', (event) => cb(event));
@@ -54,7 +54,7 @@ class App extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { 
+    this.state = {
       ethereumAddress : '',
       role: '',
       riderStartLocation: '',
@@ -101,7 +101,7 @@ class App extends Component {
       console.log('Setting driver')
       const startTime = new Date().getTime(); // ms
       await setDriver(payload.ethereumAddress);
-      console.log('set driver time') 
+      console.log('set driver time')
       console.log(new Date().getTime() - startTime);
     }
 
@@ -122,10 +122,7 @@ class App extends Component {
       const startLoc = {lat: payload.startLocation.lat().toString(), lng: payload.startLocation.lng().toString()};
       const endLoc = {lat: payload.endLocation.lat(), lng: payload.endLocation.lng()};
       const tripRate =  Math.round(payload.tripRate);
-      const startTime =  new Date().getTime(); 
       await requestRide(startLoc, endLoc, tripRate, this.state.ethereumAddress);
-      console.log('Time to request ride') 
-      console.log(new Date().getTime() - startTime);
 
       riderNumber = await getMyRiderNumber(this.state.ethereumAddress);
       this.setState({
@@ -135,7 +132,7 @@ class App extends Component {
         dropOffAddress: payload.endAddress,
         isRiderPage: false,
         isRiderProgressPage: isContinuing,
-        isLandingPage: !isContinuing, 
+        isLandingPage: !isContinuing,
         riderNumber: riderNumber,
         tripRate: Math.round(payload.tripRate),
         directions: payload.directions,
@@ -143,14 +140,11 @@ class App extends Component {
     }
 
     if (!isContinuing){
-      const startTime = new Date().getTime();
       resetUser(this.state.ethereumAddress, 0);
-      console.log('time for reset user') 
-      console.log(new Date().getTime() - startTime);
     }
   }
 
-    
+
 
   async onDriverPageSubmit(payload) {
     const isCancel = payload.isCancel;
@@ -165,14 +159,8 @@ class App extends Component {
       return;
     }
     else {
-      const startTime = new Date().getTime();
       acceptJob(parseInt(payload.jobInfo.riderNumber), payload.arrivalTime + FORGIVENESS_TIME, this.state.ethereumAddress);
-      console.log('time for accept job') 
-      console.log(new Date().getTime() - startTime);
-      const newStartTime = new Date().getTime();
       driverNumber = await getMyRiderNumber(this.state.ethereumAddress);
-      console.log('time for get number')
-      console.log(new Date().getTime() - newStartTime)
       arrivalTime = Math.round(new Date().getTime() / 1000) + payload.arrivalTime + FORGIVENESS_TIME;
     }
 
@@ -193,7 +181,7 @@ class App extends Component {
     });
   }
 
-  // called when the rider cancels a ride 
+  // called when the rider cancels a ride
   async onRiderCancels(payload) {
     let cancelFee = this.state.tripRate ? this.state.tripRate / depositRate: 0;
     await resetUser(this.state.ethereumAddress, Math.round(cancelFee));
@@ -253,10 +241,10 @@ class App extends Component {
   //              App render
   /////////////////////////////////////////////////////////////////////////
   render() {
-   
+
     return (
       <div>
-        <LandingPage 
+        <LandingPage
           onSubmit={this.onLandingPageSubmit}
           show={this.state.isLandingPage}
           DEV={NO_BLOCKCHAIN_DEV}
@@ -314,7 +302,7 @@ class App extends Component {
           toLoginPage={this.toLoginPage}
         ></DriverProgressPage>
       </div>
-      
+
     );
   }
 }

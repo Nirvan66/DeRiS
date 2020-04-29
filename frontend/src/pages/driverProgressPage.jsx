@@ -7,8 +7,8 @@ import {metersToMiles} from '../js_modules/googleMapUtils'
 
 
 /**
- * 
- * @param {object} props 
+ *
+ * @param {object} props
  */
 class DriverProgressPage extends React.Component {
     constructor (props) {
@@ -127,7 +127,7 @@ class DriverProgressPage extends React.Component {
             return (
                 <div className="summaryContainer">
                     {
-                        !this.state.riderCancelled && 
+                        !this.state.riderCancelled &&
                         <div className="rideCompleteName">
                             Ride Complete!
                         </div>
@@ -144,13 +144,13 @@ class DriverProgressPage extends React.Component {
                     <div className="backToHomePageButtonContainer">
                         <SingleButton
                             label="Back to login page"
-                            onClick={this.props.toLoginPage}
+                            onClick={this.props.toLoginPage || window.location.reload}
                         ></SingleButton>
                     </div>
                 </div>
             )
         }
-        
+
     }
 
     renderDriverButton(){
@@ -172,11 +172,11 @@ class DriverProgressPage extends React.Component {
             return (
                 <div className="tripProgressContainer">
                     Trip Progress:
-                    <div className="progressBarContainer"> 
+                    <div className="progressBarContainer">
                         <ProgressBar animated variant="warning" now={percent} label={`${percent}%`}/>
-                    </div>  
+                    </div>
                 </div>
-                              
+
             )
         }
     }
@@ -188,18 +188,18 @@ class DriverProgressPage extends React.Component {
         const now = Math.round(new Date().getTime() / 1000);
         const timeRan = Math.round(this.props.arrivalTime - now);
         const totalTime = Math.round(this.props.arrivalTime - this.state.startTime);
-        
+
         const percent = timeRan * 100 / totalTime;
 
         return (
             <div>
                 <div className="progressBarExplanation">
-                    Time to arrive a rider's location: 
+                    Time to arrive a rider's location:
                 </div>
                 <div className="arrivalTimeProgressBarContainer">
                     <ProgressBar animated variant="warning" now={percent} label={`${this.state.remainingTime}s`}/>
                 </div>
-                {this.state.remainingTime <= 60 && 
+                {this.state.remainingTime <= 60 &&
                     <div className="timeoutWarning">
                         You have {this.state.remainingTime}s to arrive or you will be penalized and returned to the home page
                     </div>
@@ -263,7 +263,7 @@ class DriverProgressPage extends React.Component {
                     {this.renderDriverPayout()}
                     {this.renderSummary()}
                     {
-                        !this.state.tripEnded && 
+                        !this.state.tripEnded &&
                         <div className="cancelButtonContainer">
                             <SingleButton
                                 label="Cancel"

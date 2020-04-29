@@ -13,8 +13,8 @@ const gasLimit = 3000000;
 
 /**
  * Turns coordinates into the form for the blockchain of [int, int] ([lat, lng])
- * 
- * @param {Object} loc  object with .lat and .lng attributes. These should be strings 
+ *
+ * @param {Object} loc  object with .lat and .lng attributes. These should be strings
  */
 function __blockifyCoords(loc){
     return [
@@ -25,13 +25,13 @@ function __blockifyCoords(loc){
 
 /**
  * Init the blockchain for the app
- * 
+ *
  * @param {String} portNumber       String port number to deploy contract on
  * @param {String} contractAddress  String ethererum address to deploy the contract on
  * @param {Object} abiFile          Object containing the abi
  */
 async function initBlockchain(portNumber, contractAddress, abiInterface) {
-    web3 = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:"+portNumber));
+    web3 = new Web3(new Web3.providers.WebsocketProvider("ws://192.168.0.16:"+portNumber));
 
     contract = new web3.eth.Contract(abiInterface);
     contract.options.address = contractAddress;
@@ -41,9 +41,9 @@ async function initBlockchain(portNumber, contractAddress, abiInterface) {
 
 /**
  * Method called when changing an accounts status to DRIVER
- * 
+ *
  * @param {String} ethereumAddress  string of the ethereum address of the one requesting the ride
- * 
+ *
  */
 function setDriver(ethereumAddress){
     return new Promise ((resolve, reject) => {
@@ -55,12 +55,12 @@ function setDriver(ethereumAddress){
 
 /**
  * Method called to send a ride request to the blockchain
- * 
+ *
  * @param {Object} startLoc         object containing both .lat and .lng attributes. These attributes should be strings, not callables
  * @param {Object} endLoc           object containing both .lat and .lng attributes. These attributes should be strings, not callables
  * @param {Number} rideCost         number cost of the trip from startLoc to endLoc
  * @param {String} ethereumAddress  string with the ethereum address of the rider
- * 
+ *
  * @returns {Promise}
  */
 function requestRide(startLoc, endLoc, rideCost, ethereumAddress){
@@ -73,15 +73,15 @@ function requestRide(startLoc, endLoc, rideCost, ethereumAddress){
             resolve(value);
         })
     })
-    
+
 }
 
 /**
  * Method called to send a ride request to the blockchain
- * 
+ *
  * @param {int} riderNumber  number from getNumber that identifies a user
  * @param {int} timeToArrive number of seconds the driver has to get to the rider before penalty
- *        
+ *
  */
 function acceptJob(riderNumber, timeToArrive, ethereumAddress){
 
@@ -96,9 +96,9 @@ function acceptJob(riderNumber, timeToArrive, ethereumAddress){
 
 /**
  * Method called when requesting the current available rides
- * 
+ *
  * @param {String} ethereumAddress string with the etheruem address of the driver looking for rides
- * 
+ *
  */
 function getCurrentRides(ethereumAddress){
     contract.methods.getWaitingRiders().send({from: ethereumAddress, gas: gasLimit}).then((value) => {
@@ -108,8 +108,8 @@ function getCurrentRides(ethereumAddress){
 
 /**
  * Resets a user so they are not 1. matched to anyone 2. locations are wiped
- * 
- * @param {String} ethereumAddress string with the ethereum address of the user to reset 
+ *
+ * @param {String} ethereumAddress string with the ethereum address of the user to reset
  * @param {Int} feeAmount           integer value in wei to cost the user by reseting user
  */
 function resetUser(ethereumAddress, feeAmount){
@@ -123,8 +123,8 @@ function resetUser(ethereumAddress, feeAmount){
 }
 
 /**
- * 
- * @param {Object} loc          object containing both .lat and .lng attributes. These attributes should be strings, not callables loc 
+ *
+ * @param {Object} loc          object containing both .lat and .lng attributes. These attributes should be strings, not callables loc
  * @param {*} ethereumAddress   string with the ethereum address of driver
  */
 function informRider(loc, ethereumAddress) {
@@ -135,10 +135,10 @@ function informRider(loc, ethereumAddress) {
 }
 
 /**
- * Get the User number in the blockchain list. Used for matching in the ride progress page 
- * 
+ * Get the User number in the blockchain list. Used for matching in the ride progress page
+ *
  * @param {*} ethereumAddress   String ethereum address of the requester
- * 
+ *
  * @returns {Promise}           Promise that when resolves returns the number (an int) for the user
  */
 function getMyRiderNumber(ethereumAddress){
@@ -150,8 +150,8 @@ function getMyRiderNumber(ethereumAddress){
 }
 
 /**
- * 
- * @param {Int} amount              Integer amount to pay (in wei right now) 
+ *
+ * @param {Int} amount              Integer amount to pay (in wei right now)
  * @param {String} ethereumAddress  String ethereum address of the sender
  */
 function payDriver(amount, ethereumAddress){
@@ -163,9 +163,9 @@ function payDriver(amount, ethereumAddress){
 
 export {
     initBlockchain,
-    setDriver, 
-    requestRide, 
-    getCurrentRides, 
+    setDriver,
+    requestRide,
+    getCurrentRides,
     acceptJob,
     resetUser,
     informRider,
