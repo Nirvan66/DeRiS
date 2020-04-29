@@ -40,7 +40,7 @@ class App extends Component {
     const portNumber = '7545';
 
     // the blockchain address
-    const address = '0x168a38Cc31F49b76Ca00EDb7edd601229180918f';
+    const address = '0xc30eA5bdE02F2FF1e6134d41a7D6796A7d999F36';
 
     const blockchainFunctions = await initBlockchain(portNumber, address, derisInterface);
     const getAvailableRidesListener = cb => blockchainFunctions.events.RiderDetails({}).on('data', (event) => cb(event));
@@ -213,9 +213,7 @@ class App extends Component {
   }
 
   async toLoginPage(){
-    if (this.state.role == 'rider'){
-      await resetUser(this.state.ethereumAddress, 0);
-    }
+
     this.setState({
       ethereumAddress : '',
       role: '',
