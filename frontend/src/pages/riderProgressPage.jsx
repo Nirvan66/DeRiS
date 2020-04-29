@@ -346,18 +346,18 @@ class RiderProgressPage extends React.Component {
                 <div className='RiderProgressPageCenter'>
                     <table>
                         <tbody>
+                          <tr>
+                              {
+                                  !this.state.tripEnded &&
+                                  <div className="cancelButtonContainer">
+                                      <SingleButton
+                                          label="Cancel"
+                                          onClick={this.cancelTrip}
+                                      ></SingleButton>
+                                  </div>
+                              }
+                          </tr>
                             <tr>
-                            <tr>
-                                {
-                                    !this.state.tripEnded &&
-                                    <div className="cancelButtonContainer">
-                                        <SingleButton
-                                            label="Cancel"
-                                            onClick={this.cancelTrip}
-                                        ></SingleButton>
-                                    </div>
-                                }
-                            </tr>
                                 <td>
                                     {this.renderSpinner()}
                                 </td>
