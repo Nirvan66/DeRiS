@@ -9,7 +9,7 @@ The project contains the frontend website and backend Ethereum Smart Contract to
 * The `.bin` and `.abi` file are used to deploy the smart contract on an ethereum test network. 
 * The `.abi` file is also used to create an instance of the contract for the React user application to use to call the functions in the smart contract deployed on the test network.
 
-## Ganaceh test Network
+## Ganache test Network
 * Ganache (https://www.trufflesuite.com/ganache) is used as the test network to deploy the `deris.sol` smart contract on.
 * Once ganache is installed, a test network is started using `quickstart`. The default test network start on local host at port number 7545 (http://127.0.0.1:7545)
 * The `backend/mig.js` script can be used to deploy the contract onto the ganache test network.
