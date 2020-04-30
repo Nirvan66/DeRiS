@@ -1,14 +1,24 @@
+//Creator: Nirvan S.P. Theethira
+//Date: 04/29/2020
+//Purpose: CSCI 5673 Group Project
+//The file contains the solidity contract that controls interactions between rider and driver
+//The file need to depolyed on the blockchain
+//COMPILE: 
+//  $ solcjs deris.sol --abi --bin
 pragma solidity >=0.4.22 <0.7.0;
 pragma experimental ABIEncoderV2;
 
 contract Deris{
+    // Stores the status of the user
     enum Status {INACTIVE, RIDER, DRIVER}
     
+    // Used to store gegraphical coordinates of a user
     struct coordinates{
         int256 lat;
         int256 long;
     }
     
+    // Struct used to store all information related to a user
     struct user{
         bool isUser;
         uint number;
@@ -23,15 +33,20 @@ contract Deris{
         uint paid;
     }
     
-    
+    // Maps user ethrium address to user struct
     mapping (address => user) public users;
-    
+    // List of user adress
     address [] public userList;
     
+    // event used to send available rider details to the driver
     event RiderDetails(uint riderNumber, coordinates pick, coordinates drop, uint escrow);
+    // event used to inform rider that he/she has been picked up
     event RiderPicked(uint riderNumber, uint arrivalTime);
+    // event used to inform driver that an amount has been paid by the rider
     event cashMoney(uint driverNumber, uint bills);
+    // event used to inform rider of drivers arrival at pickup location
     event imHere(uint riderNumber, int256[] location);
+    // event used to inform user of trip completion/ cancellation / reset
     event undone(uint usrNumber, uint pairNumber, uint cancelFee);
     
     constructor() public {
@@ -39,6 +54,7 @@ contract Deris{
     }
     
     function driveRequest() public{
+        // Function used to update/add user details when user signs on to the application as driver
         if(users[msg.sender].isUser == false){
             userList.push(msg.sender);
             users[msg.sender] = user({
@@ -68,6 +84,11 @@ contract Deris{
     }
     
     function rideRequest(int256[] memory pick, int256[] memory drop, uint tripCost) public {
+        // Function used to update/add user details when user signs on to the application as rider
+        // The rider specifies 
+        // pick: pickup location in modified lat and long 40.005140,-105.256061 => 40005140, -105256061
+        // drop: dropoff location in modified lat and long 40.005140,-105.256061 => 40005140, -105256061
+        // tripCost: Estimate cost of entire trip
         if(users[msg.sender].isUser == false){
             userList.push(msg.sender);
             users[msg.sender] = user({
@@ -97,6 +118,7 @@ contract Deris{
     }
     
     function getNumber() view public returns(int){
+        // returns users unique number in the system
         if (users[msg.sender].isUser==true){
             return int(users[msg.sender].number);
         }
@@ -106,6 +128,7 @@ contract Deris{
     }
     
     function getWaitingRiders() public{
+        // returns list of waiting riders to a driver
         require(users[msg.sender].isUser==true, "Need to be a user to select rider");
         require(users[msg.sender].state==Status.DRIVER, "User needs to be in driver mode to pick rider");
         for (uint i=0; i<userList.length; i++) {
@@ -117,6 +140,7 @@ contract Deris{
     
 
     function pickRider(uint riderNumber, uint arrivalTime) public{
+        // pairs rider and driver and informs rider of driver arrival time
         require(users[msg.sender].isUser==true, "Need to be a user to select rider");
         require(users[msg.sender].state==Status.DRIVER, "User needs to be in driver mode to pick rider");
         require(users[msg.sender].currPairing == address(0), "driver currently paired");
@@ -137,6 +161,7 @@ contract Deris{
     }
     
     function informRider(int256[] memory loc) public{
+        // informs rider of drivers arrival at pickup location
         require(users[msg.sender].isUser==true, "Need to be a user to inform rider");
         require(users[msg.sender].state==Status.DRIVER, "User needs to be in driver mode to inform rider");
         require(users[msg.sender].currPairing != address(0), "Driver needs to have an assigned rider to inform");
@@ -148,12 +173,10 @@ contract Deris{
         users[users[msg.sender].currPairing].driverArrived = true;
         
         emit imHere(users[users[msg.sender].currPairing].number, loc);
-        //[40005140, -105256061], [40005157, -105252370], 10
-        // 40.005140,-105.256061
-        // 40.005157,-105.252370
     }
     
     function payDriver() public payable{
+        // rider pays driver fixed amount for amount of trip complete
         require(users[msg.sender].isUser == true, "Need to be a user to pay");
         require(users[msg.sender].state == Status.RIDER, "User needs to be in rider mode to pay driver");
         require(users[msg.sender].currPairing != address(0), "Rider needs to have an assigned driver to pay");
@@ -186,6 +209,7 @@ contract Deris{
     
     function userReset() public payable{
         //885999999991808
+        // reset user to INACTIVE state after ride is complete/cancelled
         require(users[msg.sender].isUser == true, "Need to be a user to complete ride");
         require(users[msg.sender].state != Status.INACTIVE, "Need to be an active user to complete ride");
         require(msg.value>=0, "Ether need to be sent to reset");
