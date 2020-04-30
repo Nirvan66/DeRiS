@@ -22,6 +22,7 @@ The project contains the frontend website and backend Ethereum Smart Contract to
 * To install required packages run `npm install` in the `frontend` folder.
 * Be sure to have the contract address of the previously deployed smart contract set correctly in the `frontend/src/App.js` file so the React application can communicate with the previously deployed contract. 
 * Also make sure to have the right network address set in `frontend/src/js_modules/contractInterface.js` so the application is connecting the the ganache test network previously deployed.
+* Running the `npm run start` command in teh `frontend` folder should start up the React application
 * After the application is opened, refer to the `documentaion` to find out the various ways users can interact with DeRis.
 
 
